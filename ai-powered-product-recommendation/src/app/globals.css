@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #eeeeee;
+  --foreground: #111111;
+  --button-color: #393028;
+  --button-text-color: #ffffff;
 }
 
 @theme inline {
@@ -14,8 +16,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #111111;
+    --foreground: #eeeeee;
+    --button-color:#393028;
   }
 }
 
@@ -23,4 +26,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.custom-button{
+  background-color: var(--button-color);
+  color: var(--button-text-color);
+  border: lpx solid var(--button-color);
+ 
+  
 }

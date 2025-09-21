@@ -2,6 +2,8 @@
 
 import { SearchInput } from "../components/SearchInput"
 import { Button } from "@/components/ui/button"
+import { CommunityCarousel } from "@/components/CommunityCarousel"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 export default function Home() {
   return (
@@ -15,7 +17,8 @@ export default function Home() {
           <span className="text-xl font-semibold">ProductFinder</span>
         </div>
         <div className="flex items-center space-x-4">
-          <Button variant="outline" className="custom-button px-7">
+          <ThemeToggle/>
+          <Button variant="outline" className="custom-button px-7 bg-transparent">
             Sign In
           </Button>
         </div>
@@ -28,7 +31,7 @@ export default function Home() {
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-balance leading-tight">
               Find the Right Product, <span className="text-muted-foreground">Together.</span>
             </h1>
-            <p className="text-lg font-medium md:text-2xl text-muted-foreground max-w-2xl mx-auto text-balanced ">
+            <p className="text-lg font-medium md:text-2xl text-muted-foreground max-w-2xl mx-auto text-balance">
               AI-powered search with real community insights to help you discover products that actually matter.
             </p>
           </div>
@@ -71,20 +74,23 @@ export default function Home() {
       </section>
 
       <section className="px-6 pb-16">
-        <div className="flex justify-between">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-end mb-12">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold text-foreground">From the Community</h2>
+              <p className="text-muted-foreground text-lg">Explore what the community searched for</p>
+            </div>
+            <Button variant="outline" className="custom-button bg-transparent">
+                            <a href="/community">
+                Explore More
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </Button>
+          </div>
 
-          <div>
-            <p>From the Community</p>
-          <p>Explore what the community shoped for</p>
-          </div>
-          <div className="">
-            <a href="">Expore More</a>
-          </div>
-
-          <div>
-            {/* infinite courosal showing what the latest products users searched fow wehwe */}
-            {/* CARDs */}
-          </div>
+          <CommunityCarousel />
         </div>
       </section>
     </div>

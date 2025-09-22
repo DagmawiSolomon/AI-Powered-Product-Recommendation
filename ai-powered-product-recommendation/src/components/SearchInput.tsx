@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
 interface SearchInputProps {
@@ -12,6 +13,15 @@ interface SearchInputProps {
 
 export function SearchInput({ placeholder = "", onSubmit, className = "" }: SearchInputProps) {
   const [message, setMessage] = useState("")
+   const router = useRouter()
+
+  const examplePrompts = [
+    "Best noise-canceling headphones for work",
+    "Ergonomic office chair under $500",
+    "Gaming laptop with RTX 4070",
+    "Wireless earbuds for running",
+  ]
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +35,17 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       handleSubmit(e)
+    }
+  }
+
+  const handleExampleClick = (prompt: string) => {
+    setMessage(prompt)
+    // Auto-submit the example prompt
+    if (onSubmit) {
+      onSubmit(prompt)
+    } else {
+      const encodedQuery = encodeURIComponent(prompt)
+      router.push(`/search-results?q=${encodedQuery}`)
     }
   }
 
@@ -70,6 +91,23 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
           </div>
         </div>
       </form>
+
+        <div className="mt-4">
+          <div className="text-sm text-muted-foreground mb-3">Try searching for:</div>
+          <div className="flex flex-wrap gap-2">
+            {examplePrompts.map((prompt, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => handleExampleClick(prompt)}
+                className="group px-3 py-2 text-sm bg-card hover:bg-accent text-muted-foreground hover:text-accent-foreground rounded-lg transition-all duration-200 cursor-pointer border border-border/30 hover:border-border hover:shadow-sm"
+              >
+                <span className="group-hover:scale-105 transition-transform duration-200 inline-block">{prompt}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      
     </div>
   )
 }

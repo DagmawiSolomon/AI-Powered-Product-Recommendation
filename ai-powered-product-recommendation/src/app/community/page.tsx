@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
+import { Navbar } from "@/components/Navbar"
 
 export default function CommunityPage() {
   const [sortBy, setSortBy] = useState("newest")
@@ -117,20 +118,8 @@ export default function CommunityPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Navigation */}
-      <nav className="flex justify-between items-center p-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">P</span>
-          </div>
-          <span className="text-xl font-semibold">ProductFinder</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <ThemeToggle />
-          <Button variant="outline" className="custom-button px-7 bg-transparent">
-            Sign In
-          </Button>
-        </div>
-      </nav>
+      <Navbar />
+      
 
       {/* Hero Section */}
       <main className="flex-1 px-6 py-8">
@@ -146,9 +135,10 @@ export default function CommunityPage() {
 
           {/* Search and Filters */}
           <div className="bg-card border border-border rounded-xl p-4 mb-6 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <div className="flex flex-col justify-between sm:flex-row gap-4 items-center">
+
               {/* Compact search */}
-              <div className="flex-1 max-w-md">
+              <div className="w-full">
                 <input
                   type="text"
                   placeholder="Search guides..."
@@ -157,7 +147,10 @@ export default function CommunityPage() {
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-
+              <div>
+                
+              </div>
+              <div className="flex items-center space-x-4">
               {/* Sort dropdown */}
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">Sort by:</span>
@@ -203,6 +196,7 @@ export default function CommunityPage() {
                   </svg>
                 </Button>
               </div>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -213,7 +207,7 @@ export default function CommunityPage() {
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                     selectedCategory === category
                       ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      : "text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full"
                   }`}
                 >
                   {category === "all" ? "All" : category.replace("-", " & ").replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -243,7 +237,7 @@ export default function CommunityPage() {
                     </div>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground uppercase tracking-wider bg-secondary px-2 py-1 rounded-full">
+                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
                           {guide.category.replace("-", " & ")}
                         </span>
                         <div className="flex items-center space-x-3 text-xs text-muted-foreground">

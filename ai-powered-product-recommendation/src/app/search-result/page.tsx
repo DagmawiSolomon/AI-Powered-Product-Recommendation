@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, RefreshCw, Share2, BookOpen, Sparkles, ChevronDown, Send, MessageCircle, X } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { Navbar } from "@/components/Navbar"
+
 
 interface AIProductCard {
   id: string
@@ -152,6 +154,8 @@ export default function SearchResultsPage() {
 
   return (
     <div className="min-h-screen bg-background tech-background">
+      <Navbar />
+
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

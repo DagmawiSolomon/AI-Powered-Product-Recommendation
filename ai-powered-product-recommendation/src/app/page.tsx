@@ -4,8 +4,11 @@ import { SearchInput } from "../components/SearchInput"
 import { Button } from "@/components/ui/button"
 import { CommunityCarousel } from "@/components/CommunityCarousel"
 import { ThemeToggle } from "@/components/ThemeToggle"
+import { Info } from "lucide-react"
+import { useState } from "react"
 
 export default function Home() {
+  const [showTooltip, setShowTooltip] = useState(false)
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Navigation */}
@@ -25,9 +28,27 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-20">
-        <div className="max-w-4xl mx-auto text-center space-y-12">
-          <div className="space-y-6">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-6">
+        <div className="max-w-4xl mx-auto text-center space-y-2">
+          <div className="relative flex justify-center">
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/30 border border-border/30 shadow-sm text-sm text-muted-foreground cursor-help transition-all hover:bg-muted/50 hover:shadow-md backdrop-blur-sm"
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            >
+              <Info className="w-4 h-4" />
+              Demo uses sample products
+            </div>
+
+            {showTooltip && (
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-popover border border-border rounded-lg shadow-lg p-3 text-xs text-popover-foreground max-w-xs z-20 animate-in fade-in-0 zoom-in-95">
+                This hackathon prototype uses a small, preloaded dataset. Some queries may be limited. For a better
+                result try one of the example prompts
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-popover border-r border-b border-border rotate-45"></div>
+              </div>
+            )}
+          </div>
+          <div className="pb-3">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-balance leading-tight">
               Find the Right Product, <span className="text-muted-foreground">Together.</span>
             </h1>
@@ -47,7 +68,7 @@ export default function Home() {
       </main>
 
       {/* Powered By Section */}
-      <section className="px-6 pb-16">
+      <section className="px-6 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-muted-foreground mb-12 text-sm uppercase tracking-wider">Powered By Industry Leaders</p>
           <div className="flex flex-wrap justify-center items-center gap-16 opacity-70">

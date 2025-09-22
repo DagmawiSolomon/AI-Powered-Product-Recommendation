@@ -43,13 +43,13 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
 
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-              <kbd className="py-1 bg-muted rounded text-sm">Enter ⏎</kbd>
+              <kbd className="p-1.5 bg-muted text-sm rounded-sm">Enter ⏎</kbd>
               <span>to search</span>
             </div>
             <Button
               type="submit"
               disabled={!message.trim()}
-              className="custom-button disabled:opacity-50 disabled:cursor-not-allowed px-6"
+              className="disabled:opacity-50 disabled:cursor-not-allowed px-6"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

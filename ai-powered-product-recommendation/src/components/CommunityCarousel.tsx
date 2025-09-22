@@ -84,7 +84,7 @@ export function CommunityCarousel() {
     <div className="overflow-hidden" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <div
         ref={scrollRef}
-        className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4"
+        className="flex space-x-6 overflow-x-auto scrollbar-hide p-6 pb-4"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {/* Duplicate the array to create seamless infinite scroll */}

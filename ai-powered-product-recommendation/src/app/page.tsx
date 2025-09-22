@@ -77,8 +77,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-12">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">From the Community</h2>
-              <p className="text-muted-foreground text-lg">Explore what the community searched for</p>
+              <h2 className="text-3xl font-bold text-foreground">Recent Activity</h2>
+              <p className="text-muted-foreground text-lg">Latest searches and discussions from the community</p>
             </div>
             
               <a href="/community" className="flex items-center">

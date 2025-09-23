@@ -3,10 +3,18 @@
 import { SearchInput } from "../components/SearchInput"
 import { Button } from "@/components/ui/button"
 import { CommunityCarousel } from "@/components/CommunityCarousel"
-import { ThemeToggle } from "@/components/ThemeToggle"
 import { Info } from "lucide-react"
 import { useState } from "react"
 import { Navbar } from "@/components/Navbar"
+import {
+  Authenticated,
+  Unauthenticated,
+  AuthLoading,
+  useQuery,
+} from "convex/react";
+
+import { api } from "../../convex/_generated/api"
+
 
 export default function Home() {
   const [showTooltip, setShowTooltip] = useState(false)

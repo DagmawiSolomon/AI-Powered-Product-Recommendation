@@ -1,6 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import Link from "next/link"
+import {
+  Authenticated,
+  Unauthenticated,
+  AuthLoading,
+  useQuery,
+} from "convex/react";
+
+import { api } from "../../convex/_generated/api"
 
 export function Navbar(){
     return(
@@ -10,20 +18,56 @@ export function Navbar(){
             <span className="text-primary-foreground font-bold text-sm">P</span>
           </div>
           <Link href={"/"}>
-          <span className="text-xl font-semibold">ProductFinder</span>
+          <span className="text-xl font-semibold">ick</span>
           </Link>
           
         </div>
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="lg" className="">
-            Sign In
-          </Button>
-          <Button variant="outline" size="lg">
-            Get Started
-          </Button>
-          <ThemeToggle/>
-          
-        </div>
+        <Unauthenticated>
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" size="lg">
+              Github
+            </Button>
+            <Link href={"/signin"}>
+            <Button variant="ghost" size="lg" className="">
+              Sign In
+            </Button>
+            </Link>
+            
+            <ThemeToggle/>
+            
+          </div>
+        </Unauthenticated>
+         <AuthLoading>
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" size="lg">
+              Github
+            </Button>
+            <Link href={"/signin"}>
+            <Button variant="ghost" size="lg" className="">
+              Sign In
+            </Button>
+            </Link>
+            
+            <ThemeToggle/>
+            
+          </div>
+        </AuthLoading>
+        <Authenticated>
+           <div className="flex items-center space-x-4">
+            <Link href={"/signin"}>
+            <Button variant="ghost" size="lg" className="">
+              Github
+            </Button>
+            </Link>
+            <Button variant="outline" size="lg">
+              Logout
+            </Button>
+            <ThemeToggle/>
+            
+          </div>
+        </Authenticated>          
+
+        
       </nav>
     )
 }

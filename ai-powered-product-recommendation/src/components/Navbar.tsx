@@ -5,10 +5,8 @@ import {
   Authenticated,
   Unauthenticated,
   AuthLoading,
-  useQuery,
-} from "convex/react";
-
-import { api } from "../../convex/_generated/api"
+ } from "convex/react";
+import { signOut } from "@/lib/auth-client";
 
 export function Navbar(){
     return(
@@ -59,7 +57,9 @@ export function Navbar(){
               Github
             </Button>
             </Link>
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" onClick={async () => {
+        await signOut();
+      }}>
               Logout
             </Button>
             <ThemeToggle/>

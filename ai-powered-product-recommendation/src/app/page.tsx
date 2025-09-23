@@ -6,33 +6,21 @@ import { CommunityCarousel } from "@/components/CommunityCarousel"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { Info } from "lucide-react"
 import { useState } from "react"
+import { Navbar } from "@/components/Navbar"
 
 export default function Home() {
   const [showTooltip, setShowTooltip] = useState(false)
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Navigation */}
-      <nav className="flex justify-between items-center p-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">P</span>
-          </div>
-          <span className="text-xl font-semibold">ProductFinder</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <ThemeToggle/>
-          <Button variant="default" size="lg" className="">
-            Sign In
-          </Button>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-6">
         <div className="max-w-4xl mx-auto text-center space-y-2">
           <div className="relative flex justify-center">
             <div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/30 border border-border/30 shadow-sm text-sm text-muted-foreground cursor-help transition-all hover:bg-muted/50 hover:shadow-md backdrop-blur-sm"
+              className="bg-primary/10 text-primary inline-flex items-center gap-2 px-4 py-2 rounded-full  border border-border/30 shadow-sm text-sm cursor-help transition-all hover:bg-primary/15 hover:shadow-md backdrop-blur-sm"
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
             >
@@ -101,13 +89,18 @@ export default function Home() {
               <h2 className="text-3xl font-bold text-foreground">Recent Activity</h2>
               <p className="text-muted-foreground text-lg">Latest searches and discussions from the community</p>
             </div>
-            
+
+            <Button
+            variant={"link"}
+            size={"lg"}
+            >
               <a href="/community" className="flex items-center">
                 Explore More
                 <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </a>
+            </Button>
           
           </div>
 

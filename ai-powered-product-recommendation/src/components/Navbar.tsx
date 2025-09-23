@@ -27,7 +27,7 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-6">
         <div className="flex justify-between items-center">
           <ModernLogo />
 

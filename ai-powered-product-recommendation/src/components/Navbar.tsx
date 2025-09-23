@@ -1,73 +1,86 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import Link from "next/link"
-import {
-  Authenticated,
-  Unauthenticated,
-  AuthLoading,
- } from "convex/react";
-import { signOut } from "@/lib/auth-client";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
+import SignInDialog from "@/components/SignInDialog"
+import { Authenticated, Unauthenticated, AuthLoading } from "convex/react"
+import { signOut } from "@/lib/auth-client"
+import { useState } from "react"
+import { GitHubStarsButton } from "./ui/shadcn-io/github-stars-button"
 
-export function Navbar(){
-    return(
-      <nav className="flex justify-between items-center p-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">P</span>
-          </div>
-          <Link href={"/"}>
-          <span className="text-xl font-semibold">ick</span>
-          </Link>
-          
+function ModernLogo() {
+  return (
+    <div className="flex items-center space-x-3 group">
+      <Link href="/" className="flex items-center group">
+      <div className="text-xl font-bold text-foreground transition-all duration-300 group-hover:text-primary tracking-[0.5em] uppercase">
+        PICK
+      </div>
+    </Link>
+    </div>
+  )
+}
+
+export function Navbar() {
+  const [isSignInOpen, setIsSignInOpen] = useState(false)
+
+  return (
+    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-6 py-8">
+        <div className="flex justify-between items-center">
+          <ModernLogo />
+
+          <Unauthenticated>
+            <div className="flex items-center space-x-5">
+              <GitHubStarsButton username="DagmawiSolomon" repo="AI-Powered-Product-Recommendation" />
+              <Dialog open={isSignInOpen} onOpenChange={setIsSignInOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className=""
+                  >
+                    Sign In
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogTitle className="hidden">Social Signup</DialogTitle>
+                  <SignInDialog />
+                </DialogContent>
+              </Dialog>
+              <ThemeToggle />
+            </div>
+          </Unauthenticated>
+
+          <AuthLoading>
+            <div className="flex items-center space-x-5">
+              <GitHubStarsButton username="DagmawiSolomon" repo="AI-Powered-Product-Recommendation" />
+              <Button variant="ghost" size="lg" disabled className="font-medium opacity-50">
+                Sign In
+              </Button>
+              <ThemeToggle />
+            </div>
+          </AuthLoading>
+
+          <Authenticated>
+            <div className="flex items-center space-x-5">
+              <GitHubStarsButton username="DagmawiSolomon" repo="AI-Powered-Product-Recommendation" />
+              <Button
+                variant="outline"
+                size="lg"
+                
+                onClick={async () => {
+                  await signOut()
+                }}
+              >
+                Logout
+              </Button>
+              <ThemeToggle />
+            </div>
+          </Authenticated>
         </div>
-        <Unauthenticated>
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="lg">
-              Github
-            </Button>
-            <Link href={"/signin"}>
-            <Button variant="ghost" size="lg" className="">
-              Sign In
-            </Button>
-            </Link>
-            
-            <ThemeToggle/>
-            
-          </div>
-        </Unauthenticated>
-         <AuthLoading>
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="lg">
-              Github
-            </Button>
-            <Link href={"/signin"}>
-            <Button variant="ghost" size="lg" className="">
-              Sign In
-            </Button>
-            </Link>
-            
-            <ThemeToggle/>
-            
-          </div>
-        </AuthLoading>
-        <Authenticated>
-           <div className="flex items-center space-x-4">
-            <Link href={"/signin"}>
-            <Button variant="ghost" size="lg" className="">
-              Github
-            </Button>
-            </Link>
-            <Button variant="outline" size="lg" onClick={async () => {
-        await signOut();
-      }}>
-              Logout
-            </Button>
-            <ThemeToggle/>
-            
-          </div>
-        </Authenticated>          
-
-        
-      </nav>
-    )
+      </div>
+    </nav>
+  )
 }

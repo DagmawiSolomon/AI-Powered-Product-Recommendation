@@ -37,7 +37,7 @@ export default function Home() {
             </div>
 
             {showTooltip && (
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-popover border border-border rounded-lg shadow-lg p-3 text-xs text-popover-foreground max-w-xs z-20 animate-in fade-in-0 zoom-in-95">
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-popover border border-border rounded-lg shadow-lg p-3 text-xs text-popover-foreground max-w-xs z-100 animate-in fade-in-0 zoom-in-95">
                 This hackathon prototype uses a small, preloaded dataset. Some queries may be limited. For a better
                 result try one of the example prompts
                 <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-popover border-r border-b border-border rotate-45"></div>

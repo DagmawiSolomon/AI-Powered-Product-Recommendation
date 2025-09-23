@@ -4,6 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Sparkles } from "lucide-react"
 
 interface SearchInputProps {
   placeholder?: string | null
@@ -69,41 +70,30 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
             </div>
             <Button
               type="submit"
+              variant={"outline"}
+              size={"lg"}
               disabled={!message.trim()}
-              className="disabled:opacity-50 disabled:cursor-not-allowed px-6"
+              className="disabled:opacity-50 disabled:cursor-not-allowed p-6 rounded-full"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-sparkle-icon lucide-sparkle"
-              >
-                <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
-              </svg>
-              Find Products
+              <Sparkles/>
             </Button>
           </div>
         </div>
       </form>
-
+  
         <div className="mt-4">
           <div className="text-sm text-muted-foreground mb-3">Try searching for:</div>
           <div className="flex flex-wrap gap-2">
             {examplePrompts.map((prompt, index) => (
-              <button
+              <Button
+              variant={"outline"}
                 key={index}
                 type="button"
                 onClick={() => handleExampleClick(prompt)}
-                className="group px-3 py-2 text-sm bg-card hover:bg-accent text-muted-foreground hover:text-accent-foreground rounded-lg transition-all duration-200 cursor-pointer border border-border/30 hover:border-border hover:shadow-sm"
+                className="dark:opacity-70"
               >
                 <span className="group-hover:scale-105 transition-transform duration-200 inline-block">{prompt}</span>
-              </button>
+              </Button>
             ))}
           </div>
         </div>

@@ -6,15 +6,25 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sparkles } from "lucide-react"
 
+import { useMutation } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import { useConvexAuth } from "convex/react"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import SignInDialog from "./SignInDialog"
+
 interface SearchInputProps {
   placeholder?: string | null
-  onSubmit?: (message: string) => void
+  onSubmit?: (prompt: string) => void
   className?: string
 }
 
 export function SearchInput({ placeholder = "", onSubmit, className = "" }: SearchInputProps) {
-  const [message, setMessage] = useState("")
-   const router = useRouter()
+  const [prompt, setPrompt] = useState("")
+  const router = useRouter()
+  const [showDialog, setShowDialog] = useState(false)
+  const { isAuthenticated } = useConvexAuth()
+
+  const createSearchHistory = useMutation(api.search_history.mutations.createSearchHistory)
 
   const examplePrompts = [
     "Best noise-canceling headphones for work",
@@ -23,12 +33,20 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
     "Wireless earbuds for running",
   ]
 
-
-  const handleSubmit = (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (message.trim() && onSubmit) {
-      onSubmit(message.trim())
-      setMessage("")
+
+    if (isAuthenticated) {
+      const id = await createSearchHistory({
+        prompt: prompt,
+        status: "pending",
+        result: "",
+        updatedAt: Date.now(),
+        error_message: "",
+      })
+      router.push(`/search/${id}`)
+    } else {
+      setShowDialog(true)
     }
   }
 
@@ -40,7 +58,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
   }
 
   const handleExampleClick = (prompt: string) => {
-    setMessage(prompt)
+    setPrompt(prompt)
     // Auto-submit the example prompt
     if (onSubmit) {
       onSubmit(prompt)
@@ -55,8 +73,8 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
       <form onSubmit={handleSubmit}>
         <div className="bg-card border border-border rounded-xl p-6 space-y-4 glow-effect hover:border-border/80 transition-colors">
           <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder || "Describe the product you're looking for..."}
             rows={3}
@@ -72,32 +90,38 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
               type="submit"
               variant={"outline"}
               size={"lg"}
-              disabled={!message.trim()}
+              disabled={!prompt.trim()}
               className="disabled:opacity-50 disabled:cursor-not-allowed p-6 rounded-full"
             >
-              <Sparkles/>
+              <Sparkles />
             </Button>
           </div>
         </div>
       </form>
-  
-        <div className="mt-4">
-          <div className="text-sm text-muted-foreground mb-3">Try searching for:</div>
-          <div className="flex flex-wrap gap-2">
-            {examplePrompts.map((prompt, index) => (
-              <Button
+
+      <div className="mt-4">
+        <div className="text-sm text-muted-foreground mb-3">Try searching for:</div>
+        <div className="flex flex-wrap gap-2">
+          {examplePrompts.map((prompt, index) => (
+            <Button
               variant={"outline"}
-                key={index}
-                type="button"
-                onClick={() => handleExampleClick(prompt)}
-                className="dark:opacity-70"
-              >
-                <span className="group-hover:scale-105 transition-transform duration-200 inline-block">{prompt}</span>
-              </Button>
-            ))}
-          </div>
+              key={index}
+              type="button"
+              onClick={() => handleExampleClick(prompt)}
+              className="dark:opacity-70"
+            >
+              <span className="group-hover:scale-105 transition-transform duration-200 inline-block">{prompt}</span>
+            </Button>
+          ))}
         </div>
-      
+      </div>
+
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogTitle className="hidden">Social Signup</DialogTitle>
+          <SignInDialog />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

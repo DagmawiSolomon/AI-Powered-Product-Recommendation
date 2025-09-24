@@ -1,14 +1,30 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
-import { components } from "./_generated/api";
+import { components, internal } from "./_generated/api";
+import { AuthFunctions } from "@convex-dev/better-auth";
 import { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { betterAuth } from "better-auth";
 
 const siteUrl = process.env.SITE_URL!;
 
-// Convex + Better Auth component client
-export const authComponent = createClient<DataModel>(components.betterAuth);
+
+const authFunctions: AuthFunctions = internal.auth;
+export const authComponent = createClient<DataModel>(components.betterAuth, {
+  authFunctions,
+  triggers: {
+    user: {
+      onCreate: async (ctx, authUser) => {
+        await ctx.db.insert("users", {
+          name: authUser.name,
+          userId: authUser._id,
+        });
+      },
+    },
+  },
+});
+export const { onCreate} = authComponent.triggersApi();
+
 
 export const createAuth = (
   ctx: GenericCtx<DataModel>,
@@ -29,9 +45,11 @@ export const createAuth = (
         clientSecret: process.env.GITHUB_CLIENT_SECRET!,
       },
     },
-    plugins: [convex()],
    
-  });
+    plugins: [convex()],
+    
+
+});
 };
 
 // Example function to get the current user

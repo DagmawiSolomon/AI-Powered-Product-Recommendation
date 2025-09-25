@@ -8,4 +8,20 @@ export default defineSchema({
     name: v.string(),
     userId: v.string(), 
   }).index("by_userId", ["userId"]),
+  products: defineTable({
+    name: v.string(),
+    category: v.array(v.string()),
+    price: v.number(),
+    image: v.string(),
+    url: v.string(),
+    description: v.string(),
+    embedding: v.optional(v.array(v.float64()))
+  }).vectorIndex("by_embedding", {
+  vectorField: "embedding",
+  dimensions: 768,
+  filterFields: ["category"],
+})
 });
+
+
+           

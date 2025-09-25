@@ -10,7 +10,11 @@
 
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
-import type * as mutations_users from "../mutations/users.js";
+import type * as products_mutations from "../products/mutations.js";
+import type * as products_productFields from "../products/productFields.js";
+import type * as search_history_mutations from "../search_history/mutations.js";
+import type * as search_history_query from "../search_history/query.js";
+import type * as search_history_searchHistoryFields from "../search_history/searchHistoryFields.js";
 
 import type {
   ApiFromModules,
@@ -29,7 +33,11 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
-  "mutations/users": typeof mutations_users;
+  "products/mutations": typeof products_mutations;
+  "products/productFields": typeof products_productFields;
+  "search_history/mutations": typeof search_history_mutations;
+  "search_history/query": typeof search_history_query;
+  "search_history/searchHistoryFields": typeof search_history_searchHistoryFields;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

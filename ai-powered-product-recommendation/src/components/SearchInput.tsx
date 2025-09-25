@@ -62,10 +62,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
     // Auto-submit the example prompt
     if (onSubmit) {
       onSubmit(prompt)
-    } else {
-      const encodedQuery = encodeURIComponent(prompt)
-      router.push(`/search-results?q=${encodedQuery}`)
-    }
+    } 
   }
 
   return (

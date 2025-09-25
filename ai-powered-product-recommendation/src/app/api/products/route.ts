@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getToken } from "@/lib/auth-server";
-import { GoogleGenAI } from "@google/genai";
 import { api } from "../../../../convex/_generated/api";
 import { fetchMutation } from "convex/nextjs";
+import { getEmbeddings } from "../ai/embeddings/embeddings";
 
 type Product = {
   name: string;
@@ -13,23 +13,7 @@ type Product = {
   description: string;
 };
 
-async function getEmbeddings(contents: string[]) {
-  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY });
 
-  const response = await ai.models.embedContent({
-    model: "gemini-embedding-001",
-    contents,
-    config: {
-      taskType: "SEMANTIC_SIMILARITY",
-      outputDimensionality: 768,
-    },
-  });
-
-  if (!response.embeddings) throw new Error("No embeddings returned from Gemini");
-
-  // Map to actual float arrays
-  return response.embeddings.map((e) => e.values);
-}
 
 export async function POST(request: Request) {
   const token = await getToken();

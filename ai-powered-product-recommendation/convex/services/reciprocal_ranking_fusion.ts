@@ -1,8 +1,10 @@
+import { Id } from "../_generated/dataModel";
+
 export function ReciprocalRankingFusion(
-  lists: Array<Array<{ id: string; rank: number }>>,
+  lists: Array<Array<{ id: Id<'products'>; rank: number }>>,
   k: number = 60
 ) {
-  const scores = new Map<string, number>();
+  const scores = new Map<Id<'products'>, number>();
 
   for (const list of lists) {
     for (const { id, rank } of list) {

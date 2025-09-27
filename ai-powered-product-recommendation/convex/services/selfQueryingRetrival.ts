@@ -48,19 +48,19 @@ User Query: "Find red shoes under $100 from Nike"
 }`;
 
 export type Filter = {
-  field: "price" | "brand" | "color";
+  field: "price";
   operator: "=" | "<" | ">" | "<=" | ">=";
   value: string | number;
 };
 
-type ParsedQuery = {
+export type ParsedQuery = {
   semantic_query: string;
   keyword_query: string;
   filters: Filter[];
 };
 
 // Helper function to clean AI response
-function cleanAIJson(raw: string): string {
+export function cleanAIJson(raw: string): string {
   // Remove ```json and ``` fences
   let cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
 
@@ -74,9 +74,7 @@ function cleanAIJson(raw: string): string {
   return cleaned.slice(firstBrace, lastBrace + 1);
 }
 
-export const semanticQueryParser = action({
-  args: { query: v.string() },
-  handler: async (ctx, { query }) => {
+export async function semanticQueryParser(query: string){
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
     if (!apiKey) throw new Error("GOOGLE_GEMINI_API_KEY environment variable not set!");
 
@@ -106,7 +104,7 @@ export const semanticQueryParser = action({
       // Validate each filter
       parsed.filters.forEach((f) => {
         if (
-          !["price", "brand", "color"].includes(f.field) ||
+          !["price"].includes(f.field) ||
           !["=", "<", ">", "<=", ">="].includes(f.operator) ||
           (typeof f.value !== "string" && typeof f.value !== "number")
         ) {
@@ -118,5 +116,4 @@ export const semanticQueryParser = action({
     }
 
     return parsed;
-  },
-});
+  }

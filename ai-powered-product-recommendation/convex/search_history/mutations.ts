@@ -4,6 +4,7 @@ import { authComponent } from "../auth";
 import { api } from "../_generated/api";
 import { internal } from "../_generated/api";
 import { AnyApi } from "convex/server";
+import { v } from "convex/values";
 
 
 
@@ -34,3 +35,20 @@ return search_history_id;
   },
 });
 
+export const UpdateSearchHistory = mutation({
+  args: {id: v.id("search_history"), status: v.union(
+    v.literal("pending"),
+    v.literal("processing"),
+    v.literal("done"),
+    v.literal("error")
+), result: v.string(), error_message: v.string()},
+
+  handler:  async (ctx, args) =>{
+    await ctx.db.patch(args.id, {
+      status: args.status,
+      result: args.result,
+      error_message: args.error_message,
+    });
+    }
+  
+})

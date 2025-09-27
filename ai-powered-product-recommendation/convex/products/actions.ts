@@ -5,7 +5,7 @@ import { internal } from "../_generated/api";
 import { Doc } from "../_generated/dataModel";
 import { filterValidator } from "./query";
 
-export const similarProducts = action({
+export const VS_Results = action({
   args: {
     semantic_query: v.string(),
     filters: v.optional(v.array(filterValidator)),
@@ -22,11 +22,15 @@ export const similarProducts = action({
       limit: 50, 
     });
 
-    // Step 3: Fetch full product docs
-    let products: Array<Doc<"products">> = await ctx.runQuery(
-    internal.products.query.fetchResults,
-    { ids: results.filter(r => r._score >=  0.8).map(r => r._id) }
-  );
+   
+    const rankedResults = results
+  .filter(r => r._score >= 0.8)
+  .map((r, i) => ({ id: r._id, rank: i }));
+
+  let products: Array<Doc<"products">> = await ctx.runQuery(
+  internal.products.query.fetchResults,
+  { ids: rankedResults.map(r => r.id) }
+);
 
   
     // Step 4: Apply filters manually
@@ -53,8 +57,6 @@ export const similarProducts = action({
 
       }
     }
-
-    // Step 5: Return final products
-    return products; // limit after filtering
+    return rankedResults.filter(r => products.some(p => p._id === r.id));
   },
 });

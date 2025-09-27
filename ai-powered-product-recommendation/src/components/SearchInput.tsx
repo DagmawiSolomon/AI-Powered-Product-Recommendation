@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Sparkles } from "lucide-react"
 
 import { useMutation } from "convex/react"
+import { useAction } from "convex/react"
 import { api } from "../../convex/_generated/api"
 import { useConvexAuth } from "convex/react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import SignInDialog from "./SignInDialog"
+import { useQuery } from "convex/react"
 
 interface SearchInputProps {
   placeholder?: string | null
@@ -18,13 +20,21 @@ interface SearchInputProps {
   className?: string
 }
 
+
+
 export function SearchInput({ placeholder = "", onSubmit, className = "" }: SearchInputProps) {
   const [prompt, setPrompt] = useState("")
   const router = useRouter()
   const [showDialog, setShowDialog] = useState(false)
   const { isAuthenticated } = useConvexAuth()
 
+
+
   const createSearchHistory = useMutation(api.search_history.mutations.createSearchHistory)
+
+
+
+
 
   const examplePrompts = [
     "Best noise-canceling headphones for work",
@@ -37,7 +47,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
     e.preventDefault()
 
     if (isAuthenticated) {
-      const id = await createSearchHistory({
+      const id  = await createSearchHistory({
         prompt: prompt,
         status: "pending",
         result: "",
@@ -45,6 +55,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
         error_message: "",
       })
       router.push(`/search/${id}`)
+     
     } else {
       setShowDialog(true)
     }

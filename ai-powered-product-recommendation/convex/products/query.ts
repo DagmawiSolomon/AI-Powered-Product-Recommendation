@@ -1,9 +1,5 @@
 import { internalQuery, query } from "../_generated/server";
 import { v } from "convex/values";
-import { Filter } from "../services/selfQueryingRetrival";
-import { getEmbeddings } from "../services/embeddings";
-import { internal } from "../_generated/api";
-import { Doc } from "../_generated/dataModel";
 
 function applyFilter<T>(
   q: any, 
@@ -55,7 +51,7 @@ export const filterValidator = v.object({
   value: v.union(v.string(), v.number()),
 });
 
-export const FTS_Results = query({
+export const FTS_Results = internalQuery({
   args: {
     keyword_query: v.string(),
     filters: v.optional(v.array(filterValidator)),
@@ -73,8 +69,14 @@ export const FTS_Results = query({
     
     }
   }
-    return query.collect();
+    const docs = await query.collect();
+    return docs.map((doc, i) => ({
+      id: doc._id,
+      rank: i, 
+    }));
   },
 });
+
+
 
 

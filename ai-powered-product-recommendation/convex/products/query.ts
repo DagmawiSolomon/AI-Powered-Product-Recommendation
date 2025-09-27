@@ -40,7 +40,7 @@ export const fetchResults = internalQuery({
 
 
 export const filterValidator = v.object({
-  field: v.union(v.literal("price")),
+  field: v.literal("price"),
   operator: v.union(
     v.literal("="),
     v.literal("<"),

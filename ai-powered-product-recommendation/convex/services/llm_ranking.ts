@@ -26,8 +26,7 @@ type ranked_output = {
 }
 
 export type LLM_RESPONSE = {
-  ranking: ranked_output[],
-  comparison: string
+  ranking: ranked_output[]
 }
 
 /**
@@ -78,8 +77,7 @@ You are an AI ranking engine. Your task is to **rerank a list of product candida
       "reason": "Matches user query budget and category."
     },
     ...
-  ],
-  "comparison": "Product prod_123 is the most relevant overall; prod_456 is strong but slightly over budget; prod_789 fits less well due to missing features."
+  ]
 }
 
 ### Rules / Safety Measures:
@@ -92,13 +90,10 @@ You are an AI ranking engine. Your task is to **rerank a list of product candida
    - Ensure unique scores for ranking; adjust slightly if needed to avoid ties.
 5. **Semantic reasoning**:
    - Boost products matching the **intent and key features** implied by the query.
-6. **Comparison**:
-   - In the "comparison" string, summarize the **top 3 ranked products** in 2–3 sentences, highlighting relative strengths, weaknesses, or trade-offs. Only Include the Product name and the reason you choose it don't include ID, Description, category and tags in your output.
 
 ### Additional Notes:
 - **Only** output JSON — no extra explanations or text.
 - The "reason" field must be concise and tied to metadata.
-- The "comparison" field is free text but limited to top 3 products try to do in a little words as possible with loosing value.
 `
 
 export async function llm_ranking(input: LLM_INPUT) {

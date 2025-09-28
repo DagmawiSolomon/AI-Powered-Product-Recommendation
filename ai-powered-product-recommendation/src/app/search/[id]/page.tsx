@@ -386,6 +386,7 @@ export default function SearchResultsPage() {
 
               <div className="relative flex-shrink-0">
                 <Image
+                  fill
                   src={product.image || "/placeholder.svg"}
                   alt={product.name}
                   className="w-full h-56 object-cover"

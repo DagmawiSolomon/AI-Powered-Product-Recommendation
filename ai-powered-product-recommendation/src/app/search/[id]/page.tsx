@@ -278,7 +278,7 @@ export default function SearchResultsPage() {
               <div>
                 <h1 className="text-xl font-semibold text-foreground">AI Product Recommendations</h1>
                 <p className="text-sm text-muted-foreground">
-                  {`Based on your search: "${pageData?.prompt || "Loading..."}"`}
+                  Based on your search: &quot;{pageData?.prompt || "Loading..."}&quot;
                 </p>
               </div>
             </div>

@@ -37,23 +37,22 @@ export const CreateProducts= mutation({
 
 
 export const startHybirdSearchWorkflow = mutation({
-  args: { searchId: v.string() },
+  args: { searchId: v.string()},
   handler: async (ctx, args) => {
     // Fetch the search_history document
-    const searchHistory = await ctx.db.get(args.searchId as Id<"search_history">);
+    const id = args.searchId as Id<"search_history">;
+    const searchHistory = await ctx.db.get(id);
     if (!searchHistory) {
       throw new Error("search_history not found");
     }
 
-    // Update the status
-    await ctx.db.patch(args.searchId as Id<"search_history">, { status: "processing" });
+    await ctx.db.patch(id, { status: "processing" });
 
-    // Schedule the action with user_query from the document
-    const result = await ctx.scheduler.runAfter(0, internal.products.actions.HybridSearchWorkFlow, {
-      search_id: args.searchId as Id<"search_history">,
+    
+    await ctx.scheduler.runAfter(0, internal.products.actions.HybridSearchWorkFlow, {
+      search_id: id,
       user_query: searchHistory.prompt,
     });
 
-    console.log(result);
   },
 });

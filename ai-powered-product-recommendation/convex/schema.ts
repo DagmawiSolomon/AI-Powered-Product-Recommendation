@@ -5,7 +5,10 @@ import { ComparisonFields } from "./comparisons/schema";
 import { v } from "convex/values";
 
 export default defineSchema({
-  search_history: defineTable({...searchHistoryFields, user:v.id("users")} ),
+  search_history: defineTable({
+  ...searchHistoryFields,
+  user: v.id("users")
+}).index("by_user", ["user"]),
   users: defineTable({
     name: v.string(),
     userId: v.string(), 
@@ -30,8 +33,8 @@ export default defineSchema({
     staged: false,
     filterFields: ["price"]
   }),
-  rankings: defineTable(rankingsFields),
-  comparisons: defineTable(ComparisonFields),
+  rankings: defineTable(rankingsFields).index("by_searchId", ["searchId"]),
+  comparisons: defineTable(ComparisonFields).index("by_searchId", ["searchId"]),
 
 
 });

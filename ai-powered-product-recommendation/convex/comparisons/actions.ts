@@ -47,7 +47,7 @@ export const generateComparison = internalAction({
     });
 
     // 5. Optionally, insert the result into the comparisons table
-    await ctx.runMutation(internal.comparisons.mutations.createComparison, {searchId: args.search_id as Id<"search_history">, productIds: args.aiSelections.map(s => s.id) as Id<"products">[], text: comparisonResult });
+    await ctx.runMutation(internal.comparisons.mutations.createComparison, {searchId: args.search_id as Id<"search_history">, productIds: args.aiSelections.map(s => s.id) as Id<"products">[], text: comparisonResult.comparison });
 
     return comparisonResult;
   }

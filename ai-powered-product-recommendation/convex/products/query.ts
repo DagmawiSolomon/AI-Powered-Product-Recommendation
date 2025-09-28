@@ -1,5 +1,6 @@
 import { internalQuery, query } from "../_generated/server";
 import { v } from "convex/values";
+import { Id } from "../_generated/dataModel";
 
 function applyFilter<T>(
   q: any, 
@@ -37,6 +38,21 @@ export const fetchResults = internalQuery({
     return results;
   },
 });
+
+export const fetchProducts = query({
+  args: {ids: v.array(v.string())},
+  handler: async (ctx, args) => {
+    const results = [];
+    for (const id of (args.ids as Id<"products">[])) {
+      const doc = await ctx.db.get(id);
+      if (doc === null) {
+        continue;
+      }
+      results.push(doc);
+    }
+    return results;
+  }
+})
 
 
 export const filterValidator = v.object({

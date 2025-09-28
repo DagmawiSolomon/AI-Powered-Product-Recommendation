@@ -127,10 +127,10 @@ export default function CommunityPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-4 mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-balance leading-tight">
-              Community <span className="text-muted-foreground">Feed</span>
+              Recent <span className="text-muted-foreground">Activity</span>
             </h1>
             <p className="text-base text-muted-foreground max-w-xl mx-auto text-balanced">
-              Discover and explore product guides created by our community
+              Discover and explore searched created by our community
             </p>
           </div>
 

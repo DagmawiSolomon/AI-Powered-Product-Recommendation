@@ -12,6 +12,7 @@ import { api } from "../../../../convex/_generated/api"
 import type { Id } from "../../../../convex/_generated/dataModel"
 import AIProcessingIndicator from "@/components/AIProcessingIndicator"
 import ExpandableText from "@/components/ExpandableText"
+import Image from "next/image"
 
 interface ProductWithRanking {
   _id: Id<"products">
@@ -277,7 +278,7 @@ export default function SearchResultsPage() {
               <div>
                 <h1 className="text-xl font-semibold text-foreground">AI Product Recommendations</h1>
                 <p className="text-sm text-muted-foreground">
-                  Based on your search: "{pageData?.prompt || "Loading..."}"
+                  {`Based on your search: "${pageData?.prompt || "Loading..."}"`}
                 </p>
               </div>
             </div>
@@ -383,7 +384,7 @@ export default function SearchResultsPage() {
               </div>
 
               <div className="relative flex-shrink-0">
-                <img
+                <Image
                   src={product.image || "/placeholder.svg"}
                   alt={product.name}
                   className="w-full h-56 object-cover"

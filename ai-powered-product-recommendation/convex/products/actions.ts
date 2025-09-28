@@ -8,8 +8,9 @@ import { useAction } from "convex/react";
 import { semanticQueryParser } from "../services/selfQueryingRetrival";
 import { int } from "better-auth";
 import { ReciprocalRankingFusion } from "../services/reciprocal_ranking_fusion";
-import { llm_ranking, LLM_RESPONSE} from "../services/llm_ranking";
-import { UpdateSearchHistory } from "../search_history/mutations";
+import { llm_ranking, LLM_RESPONSE, Product_Metadata} from "../services/llm_ranking";
+import { createRankings } from "../rankings/mutations";
+import type { Rankings } from "../rankings/helpers";
 
 export const VS_Results = internalAction({
   args: {
@@ -67,11 +68,18 @@ export const VS_Results = internalAction({
   },
 });
 
-type llm_ranking_json = {
-  prompt : string,
+
+type RankingInput = Omit<Rankings, "_id" | "_creationTime">
+
+export type ProductPreview = {
+  _id: Id<"products">;  
+};
+
+export type llm_ranking_json = {
   output: LLM_RESPONSE
-  products: Doc<"products">[]
+  products: ProductPreview[]
 }
+
 
 export const HybridSearchWorkFlow = internalAction({
   args: {
@@ -92,7 +100,7 @@ export const HybridSearchWorkFlow = internalAction({
     })
 
     const results = await ReciprocalRankingFusion([vector_search_results, full_text_search_results]);
-
+    
     
     const products: Array<Doc<"products">>= await ctx.runQuery(internal.products.query.fetchResults,{
         ids: results.map(r => r.id)
@@ -101,14 +109,32 @@ export const HybridSearchWorkFlow = internalAction({
 
     const llm_ranking_results = await llm_ranking({
       query: args.user_query,
-      results: products
+      results:products.map(p => ({
+        _id: p._id,
+        name: p.name,
+        description: p.description,
+        category: p.category,
+        tags: p.tags
+      }))
     })
 
+    const final_Rankings: RankingInput[] = results.map((item, index) => {
+      const aiData = llm_ranking_results.ranking.find(r => r.id ===item.id);
+      return {
+        searchId: args.search_id as Id<'search_history'>,
+        productId: item.id as Id<'products'>,
+        hybridScore: item.RRF_SCORE,
+        aiRank: aiData?.rank,
+        reason: aiData?.reason,
+      };
+    });
+
+    await ctx.runMutation(api.rankings.mutations.createRankings, {rankings: final_Rankings});
+    
+
     const final_result:  llm_ranking_json = {
-      prompt:args.user_query,
       output:llm_ranking_results,
-      products: products
-    }
+      products: products.map(p => ({ _id: p._id,}))}
 
     await ctx.runMutation(api.search_history.mutations.UpdateSearchHistory, {
       id: args.search_id as Id<'search_history'>,
@@ -119,7 +145,7 @@ export const HybridSearchWorkFlow = internalAction({
     // update history and save in the database
     
     // save into the database 
-    return products
+    return final_result
 
   }
 })

@@ -9,12 +9,25 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as comparisons_actions from "../comparisons/actions.js";
+import type * as comparisons_helpers from "../comparisons/helpers.js";
+import type * as comparisons_mutations from "../comparisons/mutations.js";
+import type * as comparisons_query from "../comparisons/query.js";
 import type * as http from "../http.js";
+import type * as migrations from "../migrations.js";
+import type * as products_actions from "../products/actions.js";
 import type * as products_mutations from "../products/mutations.js";
 import type * as products_productFields from "../products/productFields.js";
+import type * as products_query from "../products/query.js";
+import type * as rankings_helpers from "../rankings/helpers.js";
+import type * as rankings_mutations from "../rankings/mutations.js";
 import type * as search_history_mutations from "../search_history/mutations.js";
 import type * as search_history_query from "../search_history/query.js";
 import type * as search_history_searchHistoryFields from "../search_history/searchHistoryFields.js";
+import type * as services_embeddings from "../services/embeddings.js";
+import type * as services_llm_ranking from "../services/llm_ranking.js";
+import type * as services_reciprocal_ranking_fusion from "../services/reciprocal_ranking_fusion.js";
+import type * as services_selfQueryingRetrival from "../services/selfQueryingRetrival.js";
 
 import type {
   ApiFromModules,
@@ -32,12 +45,25 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  "comparisons/actions": typeof comparisons_actions;
+  "comparisons/helpers": typeof comparisons_helpers;
+  "comparisons/mutations": typeof comparisons_mutations;
+  "comparisons/query": typeof comparisons_query;
   http: typeof http;
+  migrations: typeof migrations;
+  "products/actions": typeof products_actions;
   "products/mutations": typeof products_mutations;
   "products/productFields": typeof products_productFields;
+  "products/query": typeof products_query;
+  "rankings/helpers": typeof rankings_helpers;
+  "rankings/mutations": typeof rankings_mutations;
   "search_history/mutations": typeof search_history_mutations;
   "search_history/query": typeof search_history_query;
   "search_history/searchHistoryFields": typeof search_history_searchHistoryFields;
+  "services/embeddings": typeof services_embeddings;
+  "services/llm_ranking": typeof services_llm_ranking;
+  "services/reciprocal_ranking_fusion": typeof services_reciprocal_ranking_fusion;
+  "services/selfQueryingRetrival": typeof services_selfQueryingRetrival;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
@@ -5317,6 +5343,91 @@ export declare const components: {
               };
         },
         any
+      >;
+    };
+  };
+  migrations: {
+    lib: {
+      cancel: FunctionReference<
+        "mutation",
+        "internal",
+        { name: string },
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }
+      >;
+      cancelAll: FunctionReference<
+        "mutation",
+        "internal",
+        { sinceTs?: number },
+        Array<{
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }>
+      >;
+      clearAll: FunctionReference<
+        "mutation",
+        "internal",
+        { before?: number },
+        null
+      >;
+      getStatus: FunctionReference<
+        "query",
+        "internal",
+        { limit?: number; names?: Array<string> },
+        Array<{
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }>
+      >;
+      migrate: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          dryRun: boolean;
+          fnHandle: string;
+          name: string;
+          next?: Array<{ fnHandle: string; name: string }>;
+        },
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }
       >;
     };
   };

@@ -2,9 +2,10 @@ import { mutation } from "../_generated/server";
 import { rankingsFields } from "./schema";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
+import { Id } from "../_generated/dataModel";
 
 export type aiSelections = {
-    id: string,
+    id: Id<"products">,
     reasoning: string,
 }[]
 
@@ -15,15 +16,14 @@ export const createRankings = mutation({
      const search_id = args.rankings[0].searchId;
 
      for (const ranking of args.rankings){
-      const id = await ctx.db.insert("rankings", ranking)
+      await ctx.db.insert("rankings", ranking)
       if (ranking.aiRank && [1, 2, 3].includes(ranking.aiRank)) {
         aiSelections.push({
-          id,
+          id: ranking.productId,
           reasoning: ranking.reason || "",
         });
       }
      }
-     
    if (aiSelections) {
       await ctx.scheduler.runAfter(0, internal.comparisons.actions.generateComparison, {
         search_id,

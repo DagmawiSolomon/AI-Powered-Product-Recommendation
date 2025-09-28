@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { searchHistoryFields } from "./search_history/searchHistoryFields";
+import { rankingsFields } from "./rankings/schema";
 import { v } from "convex/values";
 
 export default defineSchema({
@@ -27,8 +28,10 @@ export default defineSchema({
     searchField: "search_text",
     staged: false,
     filterFields: ["price"]
-  })
-  
+  }),
+  rankings: defineTable(rankingsFields)
+
+
 });
 
 

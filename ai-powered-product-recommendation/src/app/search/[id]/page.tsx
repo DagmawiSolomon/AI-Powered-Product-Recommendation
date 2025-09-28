@@ -60,7 +60,7 @@ export default function SearchResultsPage() {
       id: "1",
       type: "ai",
       content:
-        "Hi! I'm here to help you understand these product recommendations. Feel free to ask me anything about the products, comparisons, or if you need different options!",
+        "Hi! I&apos;m here to help you understand these product recommendations. Feel free to ask me anything about the products, comparisons, or if you need different options!",
       timestamp: new Date(),
     },
   ])
@@ -248,9 +248,9 @@ export default function SearchResultsPage() {
     if (lowerInput.includes("compare") || lowerInput.includes("difference")) {
       return "Great question! I can help you compare these products based on their AI scores and features. Each product has been ranked based on how well it matches your specific search criteria."
     } else if (lowerInput.includes("budget") || lowerInput.includes("cheap") || lowerInput.includes("price")) {
-      return "I can help you find products within your budget range. Use the price filter above to narrow down options, or let me know your specific budget and I'll recommend the best value options."
+      return "I can help you find products within your budget range. Use the price filter above to narrow down options, or let me know your specific budget and I&apos;ll recommend the best value options."
     } else {
-      return "That's an interesting question! I'm here to help you understand these AI-ranked recommendations. Each product has been scored based on how well it matches your search criteria. What specific aspect would you like me to elaborate on?"
+      return "That&apos;s an interesting question! I&apos;m here to help you understand these AI-ranked recommendations. Each product has been scored based on how well it matches your search criteria. What specific aspect would you like me to elaborate on?"
     }
   }
 

@@ -1,11 +1,21 @@
 import { Doc } from "../_generated/dataModel"
 import { GoogleGenAI } from "@google/genai";
 import { Id } from "../_generated/dataModel";
-import { cleanAIJson } from "./selfQueryingRetrival";
+
+
+
+export type Product_Metadata = {
+  _id: Id<"products">;  
+  name: string;
+  description: string;
+  category: string;
+  tags: string[];
+};
+
 
 type LLM_INPUT = {
   query: string,
-  results: Array<Doc<"products">>
+  results: Product_Metadata[]
 }
 
 type ranked_output = {
@@ -20,15 +30,44 @@ export type LLM_RESPONSE = {
   comparison: string
 }
 
+/**
+ * Cleans raw LLM output to ensure it's valid JSON.
+ * Removes Markdown fences, stray undefined, and trailing commas.
+ */
+export function cleanAIJson(raw: string): string {
+  if (!raw) return "";
+
+  let text = raw;
+
+  // Remove any Markdown code fences ```json ... ```
+  text = text.replace(/```(?:json)?/gi, "");
+
+  // Remove any stray "undefined" or other trailing words after JSON
+  text = text.replace(/\bundefined\b/gi, "");
+
+  // Remove trailing commas before } or ]
+  text = text.replace(/,\s*(\}|\])/g, "$1");
+
+  // Trim leading/trailing whitespace
+  text = text.trim();
+
+  return text;
+}
+
+
 const instruction_prompt = `
 You are an AI ranking engine. Your task is to **rerank a list of product candidates** based on relevance to the user query.
 
 ### Inputs:
 - User query: <string>
-- Candidate products: array of objects with metadata (title, description, brand, category, price, color, tags, embedding, product_url).
+- Candidate products: array of objects with metadata (id,name, description, category, tags).
 
 ### Output Format:
 - Strictly **valid JSON only**, structured as:
+
+### Tone:
+- Phrase the "reason" field as if your **explaining to the user in first person**
+- Be concise, clear, and tied to metadata; do not invent attributes.
 
 {
   "ranking": [
@@ -54,7 +93,7 @@ You are an AI ranking engine. Your task is to **rerank a list of product candida
 5. **Semantic reasoning**:
    - Boost products matching the **intent and key features** implied by the query.
 6. **Comparison**:
-   - In the "comparison" string, summarize the **top 3 ranked products** in 2–3 sentences, highlighting relative strengths, weaknesses, or trade-offs.
+   - In the "comparison" string, summarize the **top 3 ranked products** in 2–3 sentences, highlighting relative strengths, weaknesses, or trade-offs. Only Include the Product name and the reason you choose it don't include ID, Description, category and tags in your output.
 
 ### Additional Notes:
 - **Only** output JSON — no extra explanations or text.
@@ -83,8 +122,11 @@ export async function llm_ranking(input: LLM_INPUT) {
   let parsed: LLM_RESPONSE;
 
   try {
-    const cleanedText = cleanAIJson(response.text);
-    parsed = JSON.parse(cleanedText);
+    const cleanedText = cleanAIJson(await response.text);
+    const safeText = cleanedText
+    .replace(/\\'/g, "'")        // fix single quotes
+    .replace(/[\u0000-\u001F]+/g, ""); 
+    parsed = JSON.parse(safeText);
 
     if (!Array.isArray(parsed.ranking)) {
       throw new Error("Ranking is not an array");

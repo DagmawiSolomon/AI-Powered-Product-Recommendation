@@ -1,6 +1,7 @@
 import { internalQuery, query } from "../_generated/server";
 import { v } from "convex/values";
 import { Id } from "../_generated/dataModel";
+import { internal } from "../_generated/api";
 // This query expects a userId (string) and returns the matching user from your "users" table
 export const getUserByUserId = query({
   args: { userId: v.string() },
@@ -45,6 +46,8 @@ export const getPrompt = internalQuery({
 export const getPageData = query({
   args: { id: v.string() },
   handler: async (ctx, args) => {
+
+    const prompt:string = await ctx.runQuery(internal.search_history.query.getPrompt,{ id: args.id }) ?? "";
     // 1. Get all rankings for the given search_history
     const rankings = await ctx.db
       .query("rankings")
@@ -69,6 +72,7 @@ export const getPageData = query({
 
     // 5. Return everything formatted for easy parsing
     return {
+      prompt,
       rankings,
       products,
       comparison,

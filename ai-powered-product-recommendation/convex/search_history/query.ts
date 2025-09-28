@@ -40,3 +40,38 @@ export const getPrompt = internalQuery({
     return doc?.prompt;
   },
 })
+
+
+export const getPageData = query({
+  args: { id: v.string() },
+  handler: async (ctx, args) => {
+    // 1. Get all rankings for the given search_history
+    const rankings = await ctx.db
+      .query("rankings")
+      .withIndex("by_searchId", (q) => q.eq("searchId", args.id as Id<"search_history">))
+      .collect();
+
+    // 2. Get all unique productIds from the rankings
+    const productIds = Array.from(new Set(rankings.map(r => r.productId)));
+
+    // 3. Fetch all products by their IDs
+    const products = [];
+    for (const productId of productIds) {
+      const product = await ctx.db.get(productId);
+      if (product) products.push(product);
+    }
+
+    // 4. Get the comparison associated with the search_history
+    const comparison = await ctx.db
+      .query("comparisons")
+      .withIndex("by_searchId", (q) => q.eq("searchId", args.id as Id<"search_history">))
+      .unique();
+
+    // 5. Return everything formatted for easy parsing
+    return {
+      rankings,
+      products,
+      comparison,
+    };
+  },
+});

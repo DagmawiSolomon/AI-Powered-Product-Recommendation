@@ -3,39 +3,26 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  ArrowLeft,
-  RefreshCw,
-  Share2,
-  Sparkles,
-  Send,
-  MessageCircle,
-  X,
-  Plus,
-  Crown,
-  Brain,
-  Zap,
-  Target,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react"
+import { ArrowLeft, RefreshCw, Share2, Sparkles, Send, MessageCircle, X, Plus, Crown, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
-import { useQuery, useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import type { Id } from "../../../../convex/_generated/dataModel"
+import AIProcessingIndicator from "@/components/AIProcessingIndicator"
+import ExpandableText from "@/components/ExpandableText"
 
 interface ProductWithRanking {
   _id: Id<"products">
   _creationTime: number
   name: string
   category: string
-  tags: string[]
   price: number
   image: string
   url: string
   description: string
+  tags: string[]
   // Ranking data
   aiRank: number
   hybridScore: number
@@ -49,185 +36,10 @@ interface ChatMessage {
   timestamp: Date
 }
 
-type ProcessingStatus = "pending" | "processing" | "done" | "error"
-
-interface ProcessingState {
-  status: ProcessingStatus
-  message: string
-  progress?: number
-}
-
-const AIProcessingIndicator = ({ state }: { state: ProcessingState }) => {
-  const getStatusIcon = () => {
-    switch (state.status) {
-      case "pending":
-        return <Brain className="w-6 h-6 text-blue-500 animate-pulse" />
-      case "processing":
-        return <Zap className="w-6 h-6 text-yellow-500 animate-bounce" />
-      case "done":
-        return <CheckCircle className="w-6 h-6 text-green-500" />
-      case "error":
-        return <AlertCircle className="w-6 h-6 text-red-500" />
-    }
-  }
-
-  const getStatusColor = () => {
-    switch (state.status) {
-      case "pending":
-        return "from-blue-500/20 to-purple-500/20 border-blue-500/30"
-      case "processing":
-        return "from-yellow-500/20 to-orange-500/20 border-yellow-500/30"
-      case "done":
-        return "from-green-500/20 to-emerald-500/20 border-green-500/30"
-      case "error":
-        return "from-red-500/20 to-pink-500/20 border-red-500/30"
-    }
-  }
-
-  return (
-    <div className={`bg-gradient-to-r ${getStatusColor()} border rounded-xl p-6 backdrop-blur-sm`}>
-      <div className="flex items-center space-x-4">
-        <div className="relative">
-          {getStatusIcon()}
-          {state.status === "processing" && (
-            <div className="absolute -inset-2 rounded-full border-2 border-yellow-500/30 animate-ping" />
-          )}
-        </div>
-        <div className="flex-1">
-          <h3 className="font-semibold text-foreground mb-1">
-            {state.status === "pending" && "AI is thinking..."}
-            {state.status === "processing" && "Processing your search"}
-            {state.status === "done" && "Search complete!"}
-            {state.status === "error" && "Something went wrong"}
-          </h3>
-          <p className="text-sm text-muted-foreground">{state.message}</p>
-          {state.progress !== undefined && state.status === "processing" && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Progress</span>
-                <span>{Math.round(state.progress)}%</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${state.progress}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const AISearchLoader = () => {
-  const [currentStep, setCurrentStep] = useState(0)
-  const steps = [
-    { icon: Brain, text: "Analyzing your query", color: "text-blue-500" },
-    { icon: Target, text: "Finding relevant products", color: "text-purple-500" },
-    { icon: Sparkles, text: "Ranking by AI score", color: "text-yellow-500" },
-    { icon: CheckCircle, text: "Preparing results", color: "text-green-500" },
-  ]
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentStep((prev) => (prev + 1) % steps.length)
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-8 max-w-md">
-          <div className="relative">
-            <div className="w-24 h-24 mx-auto bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full flex items-center justify-center border border-primary/30">
-              {steps.map((step, index) => {
-                const Icon = step.icon
-                return (
-                  <Icon
-                    key={index}
-                    className={`w-8 h-8 absolute transition-all duration-500 ${
-                      index === currentStep
-                        ? `${step.color} scale-100 opacity-100`
-                        : "text-muted-foreground scale-75 opacity-30"
-                    }`}
-                  />
-                )
-              })}
-            </div>
-            <div className="absolute -inset-4 rounded-full border-2 border-primary/20 animate-spin" />
-            <div className="absolute -inset-8 rounded-full border border-primary/10 animate-ping" />
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-foreground">AI Search in Progress</h2>
-            <div className="space-y-2">
-              {steps.map((step, index) => {
-                const Icon = step.icon
-                return (
-                  <div
-                    key={index}
-                    className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
-                      index === currentStep
-                        ? "bg-primary/10 border border-primary/20"
-                        : index < currentStep
-                          ? "bg-green-500/10 border border-green-500/20"
-                          : "bg-muted/30"
-                    }`}
-                  >
-                    <Icon
-                      className={`w-5 h-5 ${
-                        index === currentStep
-                          ? step.color
-                          : index < currentStep
-                            ? "text-green-500"
-                            : "text-muted-foreground"
-                      }`}
-                    />
-                    <span className={`text-sm ${index <= currentStep ? "text-foreground" : "text-muted-foreground"}`}>
-                      {step.text}
-                    </span>
-                    {index < currentStep && <CheckCircle className="w-4 h-4 text-green-500 ml-auto" />}
-                    {index === currentStep && (
-                      <div className="ml-auto">
-                        <div className="flex space-x-1">
-                          <div className="w-1 h-1 bg-current rounded-full animate-bounce" />
-                          <div
-                            className="w-1 h-1 bg-current rounded-full animate-bounce"
-                            style={{ animationDelay: "0.1s" }}
-                          />
-                          <div
-                            className="w-1 h-1 bg-current rounded-full animate-bounce"
-                            style={{ animationDelay: "0.2s" }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-            <Sparkles className="w-4 h-4 animate-pulse" />
-            <span>Powered by AI • Finding the perfect match for you</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function SearchResultsPage() {
   const params = useParams()
   const searchId = params.id as string
-
-  const HybridSearchWorkFlow = useMutation(api.products.mutations.startHybirdSearchWorkflow)
+    const HybridSearchWorkFlow = useMutation(api.products.mutations.startHybirdSearchWorkflow)
 
   const status = useQuery(api.search_history.query.checkStatus, { id: searchId })
   const pageData = useQuery(
@@ -239,11 +51,6 @@ export default function SearchResultsPage() {
     HybridSearchWorkFlow({ searchId })
   }
  
-
-
-  
-  
-
   const [products, setProducts] = useState<ProductWithRanking[]>([])
   const [allRankedProducts, setAllRankedProducts] = useState<ProductWithRanking[]>([])
   const [showChat, setShowChat] = useState(false)
@@ -262,7 +69,6 @@ export default function SearchResultsPage() {
   const [maxPrice, setMaxPrice] = useState("")
   const [displayCount, setDisplayCount] = useState(3)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [productAlternativeIndex, setProductAlternativeIndex] = useState<{ [key: string]: number }>({})
   const [isRefining, setIsRefining] = useState(false)
 
   useEffect(() => {
@@ -282,13 +88,32 @@ export default function SearchResultsPage() {
         })
         .filter(Boolean) as ProductWithRanking[]
 
-      setAllRankedProducts(rankedProducts)
-      setProducts(rankedProducts.slice(0, displayCount))
+      const sortedProducts = rankedProducts.sort((a, b) => a.aiRank - b.aiRank)
+
+      setAllRankedProducts(sortedProducts)
+      setProducts(sortedProducts.slice(0, displayCount))
     }
   }, [pageData, status, displayCount])
 
   if (status === undefined) {
-    return <AISearchLoader />
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="max-w-md w-full px-4">
+            <div className="text-center space-y-6">
+              <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
+                <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold text-foreground">Loading...</h2>
+                <p className="text-muted-foreground">Please wait while we fetch your results</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (status === "error") {
@@ -316,7 +141,28 @@ export default function SearchResultsPage() {
   }
 
   if (status === "pending" || status === "processing") {
-    return <AISearchLoader />
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="max-w-md w-full px-4">
+            {status === "processing" ? (
+              <AIProcessingIndicator />
+            ) : (
+              <div className="text-center space-y-6">
+                <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
+                  <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-xl font-semibold text-foreground">Preparing your search...</h2>
+                  <p className="text-muted-foreground">This will just take a moment</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const handleRefineResults = () => {
@@ -431,7 +277,7 @@ export default function SearchResultsPage() {
               <div>
                 <h1 className="text-xl font-semibold text-foreground">AI Product Recommendations</h1>
                 <p className="text-sm text-muted-foreground">
-                  Based on your search: {pageData?.prompt}
+                  Based on your search: "{pageData?.prompt || "Loading..."}"
                 </p>
               </div>
             </div>
@@ -452,9 +298,9 @@ export default function SearchResultsPage() {
               <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-5 h-5 text-primary" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1">
                 <h3 className="font-semibold text-foreground">AI Product Comparison</h3>
-                <p className="text-muted-foreground leading-relaxed">{pageData.comparison.text}</p>
+                {pageData.comparison.text} maxLength={200}
               </div>
             </div>
           </div>
@@ -556,15 +402,19 @@ export default function SearchResultsPage() {
                     <span className="text-xl font-bold text-primary flex-shrink-0">${product.price}</span>
                   </div>
 
-                  <p className="text-muted-foreground text-sm leading-relaxed">{product.description}</p>
+                  <ExpandableText
+                    text={product.description}
+                    maxLength={100}
+                    className="text-muted-foreground text-sm"
+                  />
                 </div>
 
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-start space-x-2">
                     <Sparkles className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-foreground mb-1">AI Analysis</p>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{product.reason}</p>
+          {product.reason}
                     </div>
                   </div>
                 </div>
@@ -606,7 +456,7 @@ export default function SearchResultsPage() {
         )}
       </div>
 
-      {/* ... existing chat component code ... */}
+      {/* Existing chat component code */}
       <div className="fixed bottom-6 right-6 z-50">
         {!showChat ? (
           <Button

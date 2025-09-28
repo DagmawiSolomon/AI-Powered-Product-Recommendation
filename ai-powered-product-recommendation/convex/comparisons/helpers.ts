@@ -3,18 +3,15 @@ import { Id } from "../_generated/dataModel";
 import { Doc } from "../_generated/dataModel";
 
 
-type comparison = Doc<"comparisons">
-
-
 export function cleanAIJson(raw: string): string {
   if (!raw) return "";
 
   let text = raw;
 
-  // Remove any Markdown code fences ```json ... ```
+  // Remove Markdown code fences ```json ... ```
   text = text.replace(/```(?:json)?/gi, "");
 
-  // Remove any stray "undefined" or other trailing words after JSON
+  // Remove any stray "undefined" or other trailing words
   text = text.replace(/\bundefined\b/gi, "");
 
   // Remove trailing commas before } or ]
@@ -23,19 +20,22 @@ export function cleanAIJson(raw: string): string {
   // Trim leading/trailing whitespace
   text = text.trim();
 
+  // Keep only text within first {...} block (helps if LLM adds extra commentary)
+  const match = text.match(/\{[\s\S]*\}/);
+  if (match) text = match[0];
+
   return text;
 }
 
 type input = {
-  query: string,
-  products:{
-    name: string,
-    description: string,
-    tags: string[],
-    reasoning: string  
-  }[],
-}
-
+  query: string;
+  products: {
+    name: string;
+    description: string;
+    tags: string[];
+    reasoning: string;
+  }[];
+};
 
 const instruction_prompt = `You are an AI comparison engine. Your task is to create a **brief comparison string** between products based on how well they fit the user’s query.
 
@@ -65,7 +65,7 @@ const instruction_prompt = `You are an AI comparison engine. Your task is to cre
 ### Additional Notes:
 - The comparison should **summarize the top products in 1–2 sentences each**, joined into a single string.  
 - Focus on relevance to the user query rather than general product praise.
-`
+`;
 
 export async function generateComparisonText(input: input) {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
@@ -78,30 +78,37 @@ export async function generateComparisonText(input: input) {
       ${instruction_prompt}
       ### Inputs:
       - User query: ${input.query}
-      - Products array ${input.products.map(p => JSON.stringify(p))}
+      - Products array ${input.products.map((p) => JSON.stringify(p))}
     `,
-    config: { temperature: 0.15 }
+    config: { temperature: 0.15 },
   });
 
   if (!response.text) throw new Error("No response text from AI");
 
-  let parsed: string;
-
-
+  let parsed: { comparison: string };
 
   try {
-    const cleanedText = cleanAIJson(await response.text);
+    const cleanedText = cleanAIJson(response.text);
     const safeText = cleanedText
-    .replace(/\\'/g, "'")       
-    .replace(/[\u0000-\u001F]+/g, ""); 
-    parsed = JSON.parse(safeText);
-    
+      .replace(/\\'/g, "'") 
+      .replace(/[\u0000-\u001F]+/g, ""); 
 
+    parsed = JSON.parse(safeText);
+
+    
+    if (
+      !parsed ||
+      typeof parsed.comparison !== "string" ||
+      Object.keys(parsed).length !== 1
+    ) {
+      throw new Error(
+        "Parsed output must be a single-field object with a string 'comparison'"
+      );
+    }
   } catch (err: any) {
     console.error("LLM output validation failed:", err.message);
     throw new Error(`LLM output invalid: ${err.message}`);
   }
 
-
-  return parsed; 
+  return parsed;
 }

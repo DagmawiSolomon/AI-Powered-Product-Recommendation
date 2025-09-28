@@ -48,6 +48,7 @@ export const UpdateSearchHistory = mutation({
       status: args.status,
       result: args.result,
       error_message: args.error_message,
+      updatedAt: Date.now(),
     });
     }
   

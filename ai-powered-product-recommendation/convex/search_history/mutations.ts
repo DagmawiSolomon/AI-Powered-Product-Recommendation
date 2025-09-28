@@ -18,21 +18,21 @@ export const createSearchHistory = mutation({
     const user = await ctx.runQuery(api.search_history.query.getUserByUserId, { userId: userID });
    
 
-    if (!user) {
-  throw new Error("User not found in users table");
-}
+      if (!user) {
+    throw new Error("User not found in users table");
+  }
 
-const search_history_id:any = await ctx.db.insert("search_history", {
-  prompt: args.prompt,
-  status: args.status,
-  result: args.result,
-  updatedAt: args.updatedAt,
-  error_message: args.error_message,
-  user: user._id, 
-});
+  const search_history_id:any = await ctx.db.insert("search_history", {
+    prompt: args.prompt,
+    status: args.status,
+    result: args.result,
+    updatedAt: args.updatedAt,
+    error_message: args.error_message,
+    user: user._id, 
+  });
 
-return search_history_id;
-  },
+  return search_history_id;
+    },
 });
 
 export const UpdateSearchHistory = mutation({

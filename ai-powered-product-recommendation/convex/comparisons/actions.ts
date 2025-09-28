@@ -10,7 +10,7 @@ export const generateComparison = internalAction({
     search_id: v.string(),
     aiSelections: v.array(
       v.object({
-        id: v.string(),
+        id: v.id("products"),
         reasoning: v.string(),
       })
     ),
@@ -46,9 +46,13 @@ export const generateComparison = internalAction({
       products: context,
     });
 
-    // 5. Optionally, insert the result into the comparisons table
-    await ctx.runMutation(internal.comparisons.mutations.createComparison, {searchId: args.search_id as Id<"search_history">, productIds: args.aiSelections.map(s => s.id) as Id<"products">[], text: comparisonResult.comparison });
-
+    const existingComparison = await ctx.runQuery(
+      internal.comparisons.query.getBySearchId, // You may need to implement this query
+      { searchId: args.search_id as Id<"search_history"> }
+    );
+    if(!existingComparison){
+    await ctx.runMutation(internal.comparisons.mutations.createComparison, {searchId: args.search_id as Id<"search_history">, productIds: args.aiSelections.map(s => s.id), text: comparisonResult.comparison });
+    }
     return comparisonResult;
   }
 });

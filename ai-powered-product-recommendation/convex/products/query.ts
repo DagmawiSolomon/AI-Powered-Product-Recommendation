@@ -39,7 +39,7 @@ export const fetchResults = internalQuery({
   },
 });
 
-export const fetchProducts = query({
+export const fetchProducts = internalQuery({
   args: {ids: v.array(v.string())},
   handler: async (ctx, args) => {
     const results = [];
@@ -53,6 +53,9 @@ export const fetchProducts = query({
     return results;
   }
 })
+
+
+
 
 
 export const filterValidator = v.object({

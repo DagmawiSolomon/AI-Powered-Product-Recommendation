@@ -31,7 +31,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
 
 
   const createSearchHistory = useMutation(api.search_history.mutations.createSearchHistory)
-
+  const startSearchWorkflow =useMutation(api.products.mutations.startHybirdSearchWorkflow)
 
 
 
@@ -54,6 +54,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
         updatedAt: Date.now(),
         error_message: "",
       })
+      startSearchWorkflow({ searchId: id })
       router.push(`/search/${id}`)
      
     } else {

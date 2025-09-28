@@ -1,23 +1,45 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, RefreshCw, Share2, BookOpen, Sparkles, ChevronDown, Send, MessageCircle, X } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  ArrowLeft,
+  RefreshCw,
+  Share2,
+  Sparkles,
+  Send,
+  MessageCircle,
+  X,
+  Plus,
+  Crown,
+  Brain,
+  Zap,
+  Target,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useParams } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "../../../../convex/_generated/api"
+import type { Id } from "../../../../convex/_generated/dataModel"
 
-
-interface AIProductCard {
-  id: string
+interface ProductWithRanking {
+  _id: Id<"products">
+  _creationTime: number
   name: string
-  price: string
-  image: string
-  description: string
-  aiExplanation: string
   category: string
-  rating: number
-  inStock: boolean
+  tags: string[]
+  price: number
+  image: string
+  url: string
+  description: string
+  // Ranking data
+  aiRank: number
+  hybridScore: number
+  reason: string
 }
 
 interface ChatMessage {
@@ -27,49 +49,203 @@ interface ChatMessage {
   timestamp: Date
 }
 
-const mockProducts: AIProductCard[] = [
-  {
-    id: "1",
-    name: "Sony WH-1000XM5 Headphones",
-    price: "$399.99",
-    image: "/sony-wh-1000xm5.png",
-    description: "Industry-leading noise canceling with exceptional sound quality and 30-hour battery life.",
-    aiExplanation:
-      "Perfect for your commute needs with superior noise cancellation and long battery life. The adaptive sound control automatically adjusts to your environment.",
-    category: "Audio",
-    rating: 4.8,
-    inStock: true,
-  },
-  {
-    id: "2",
-    name: "Apple AirPods Pro (2nd Gen)",
-    price: "$249.99",
-    image: "/images/products/airpods-pro.png",
-    description: "Advanced Active Noise Cancellation with Adaptive Transparency and spatial audio.",
-    aiExplanation:
-      "Ideal for seamless Apple ecosystem integration. The H2 chip delivers improved noise cancellation and better battery efficiency for daily use.",
-    category: "Audio",
-    rating: 4.7,
-    inStock: true,
-  },
-  {
-    id: "3",
-    name: "Bose QuietComfort 45",
-    price: "$329.99",
-    image: "/bose-quietcomfort-45-headphones.jpg",
-    description: "Legendary noise cancellation with premium comfort for all-day listening.",
-    aiExplanation:
-      "Best choice for comfort during long listening sessions. Bose's renowned noise cancellation technology makes it perfect for focus work and travel.",
-    category: "Audio",
-    rating: 4.6,
-    inStock: false,
-  },
-]
+type ProcessingStatus = "pending" | "processing" | "done" | "error"
+
+interface ProcessingState {
+  status: ProcessingStatus
+  message: string
+  progress?: number
+}
+
+const AIProcessingIndicator = ({ state }: { state: ProcessingState }) => {
+  const getStatusIcon = () => {
+    switch (state.status) {
+      case "pending":
+        return <Brain className="w-6 h-6 text-blue-500 animate-pulse" />
+      case "processing":
+        return <Zap className="w-6 h-6 text-yellow-500 animate-bounce" />
+      case "done":
+        return <CheckCircle className="w-6 h-6 text-green-500" />
+      case "error":
+        return <AlertCircle className="w-6 h-6 text-red-500" />
+    }
+  }
+
+  const getStatusColor = () => {
+    switch (state.status) {
+      case "pending":
+        return "from-blue-500/20 to-purple-500/20 border-blue-500/30"
+      case "processing":
+        return "from-yellow-500/20 to-orange-500/20 border-yellow-500/30"
+      case "done":
+        return "from-green-500/20 to-emerald-500/20 border-green-500/30"
+      case "error":
+        return "from-red-500/20 to-pink-500/20 border-red-500/30"
+    }
+  }
+
+  return (
+    <div className={`bg-gradient-to-r ${getStatusColor()} border rounded-xl p-6 backdrop-blur-sm`}>
+      <div className="flex items-center space-x-4">
+        <div className="relative">
+          {getStatusIcon()}
+          {state.status === "processing" && (
+            <div className="absolute -inset-2 rounded-full border-2 border-yellow-500/30 animate-ping" />
+          )}
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-foreground mb-1">
+            {state.status === "pending" && "AI is thinking..."}
+            {state.status === "processing" && "Processing your search"}
+            {state.status === "done" && "Search complete!"}
+            {state.status === "error" && "Something went wrong"}
+          </h3>
+          <p className="text-sm text-muted-foreground">{state.message}</p>
+          {state.progress !== undefined && state.status === "processing" && (
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                <span>Progress</span>
+                <span>{Math.round(state.progress)}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${state.progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const AISearchLoader = () => {
+  const [currentStep, setCurrentStep] = useState(0)
+  const steps = [
+    { icon: Brain, text: "Analyzing your query", color: "text-blue-500" },
+    { icon: Target, text: "Finding relevant products", color: "text-purple-500" },
+    { icon: Sparkles, text: "Ranking by AI score", color: "text-yellow-500" },
+    { icon: CheckCircle, text: "Preparing results", color: "text-green-500" },
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentStep((prev) => (prev + 1) % steps.length)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-8 max-w-md">
+          <div className="relative">
+            <div className="w-24 h-24 mx-auto bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full flex items-center justify-center border border-primary/30">
+              {steps.map((step, index) => {
+                const Icon = step.icon
+                return (
+                  <Icon
+                    key={index}
+                    className={`w-8 h-8 absolute transition-all duration-500 ${
+                      index === currentStep
+                        ? `${step.color} scale-100 opacity-100`
+                        : "text-muted-foreground scale-75 opacity-30"
+                    }`}
+                  />
+                )
+              })}
+            </div>
+            <div className="absolute -inset-4 rounded-full border-2 border-primary/20 animate-spin" />
+            <div className="absolute -inset-8 rounded-full border border-primary/10 animate-ping" />
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-foreground">AI Search in Progress</h2>
+            <div className="space-y-2">
+              {steps.map((step, index) => {
+                const Icon = step.icon
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
+                      index === currentStep
+                        ? "bg-primary/10 border border-primary/20"
+                        : index < currentStep
+                          ? "bg-green-500/10 border border-green-500/20"
+                          : "bg-muted/30"
+                    }`}
+                  >
+                    <Icon
+                      className={`w-5 h-5 ${
+                        index === currentStep
+                          ? step.color
+                          : index < currentStep
+                            ? "text-green-500"
+                            : "text-muted-foreground"
+                      }`}
+                    />
+                    <span className={`text-sm ${index <= currentStep ? "text-foreground" : "text-muted-foreground"}`}>
+                      {step.text}
+                    </span>
+                    {index < currentStep && <CheckCircle className="w-4 h-4 text-green-500 ml-auto" />}
+                    {index === currentStep && (
+                      <div className="ml-auto">
+                        <div className="flex space-x-1">
+                          <div className="w-1 h-1 bg-current rounded-full animate-bounce" />
+                          <div
+                            className="w-1 h-1 bg-current rounded-full animate-bounce"
+                            style={{ animationDelay: "0.1s" }}
+                          />
+                          <div
+                            className="w-1 h-1 bg-current rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+            <Sparkles className="w-4 h-4 animate-pulse" />
+            <span>Powered by AI • Finding the perfect match for you</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function SearchResultsPage() {
-  const [products, setProducts] = useState(mockProducts)
-  const [isRefining, setIsRefining] = useState(false)
-  const [showRefinement, setShowRefinement] = useState(false)
+  const params = useParams()
+  const searchId = params.id as string
+
+  const HybridSearchWorkFlow = useMutation(api.products.mutations.startHybirdSearchWorkflow)
+
+  const status = useQuery(api.search_history.query.checkStatus, { id: searchId })
+  const pageData = useQuery(
+  api.search_history.query.getPageData,
+  status === "done" ? { id: searchId } : "skip"
+);
+  
+  if (status == "pending"){
+    HybridSearchWorkFlow({ searchId })
+  }
+ 
+
+
+  
+  
+
+  const [products, setProducts] = useState<ProductWithRanking[]>([])
+  const [allRankedProducts, setAllRankedProducts] = useState<ProductWithRanking[]>([])
   const [showChat, setShowChat] = useState(false)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
@@ -82,31 +258,115 @@ export default function SearchResultsPage() {
   ])
   const [chatInput, setChatInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const searchParams = useSearchParams()
-  const query = searchParams.get("q") || "noise cancelling headphones for commuting"
+  const [minPrice, setMinPrice] = useState("")
+  const [maxPrice, setMaxPrice] = useState("")
+  const [displayCount, setDisplayCount] = useState(3)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [productAlternativeIndex, setProductAlternativeIndex] = useState<{ [key: string]: number }>({})
+  const [isRefining, setIsRefining] = useState(false)
 
-  const handleSwapProduct = (productId: string) => {
-    // Simulate swapping with alternative product
-    setProducts((prev) =>
-      prev.map((product) =>
-        product.id === productId
-          ? {
-              ...product,
-              name: "Alternative " + product.name,
-              price: "$" + (Number.parseInt(product.price.slice(1)) - 50) + ".99",
-            }
-          : product,
-      ),
+  useEffect(() => {
+    if (pageData && status === "done") {
+      const rankedProducts: ProductWithRanking[] = pageData.rankings
+        .map((ranking) => {
+          if(!pageData) return
+          const product = pageData.products.find((p) => p._id === ranking.productId)
+          if (!product) return null
+
+          return {
+            ...product,
+            aiRank: ranking.aiRank,
+            hybridScore: ranking.hybridScore,
+            reason: ranking.reason,
+          }
+        })
+        .filter(Boolean) as ProductWithRanking[]
+
+      setAllRankedProducts(rankedProducts)
+      setProducts(rankedProducts.slice(0, displayCount))
+    }
+  }, [pageData, status, displayCount])
+
+  if (status === undefined) {
+    return <AISearchLoader />
+  }
+
+  if (status === "error") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              There was an error processing your search. Please try again or contact support if the problem persists.
+            </AlertDescription>
+          </Alert>
+          <div className="mt-6">
+            <Link href="/">
+              <Button variant="outline">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Search
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
     )
+  }
+
+  if (status === "pending" || status === "processing") {
+    return <AISearchLoader />
   }
 
   const handleRefineResults = () => {
     setIsRefining(true)
-    // Simulate AI refinement
+
     setTimeout(() => {
+      let filtered = allRankedProducts
+
+      if (minPrice || maxPrice) {
+        filtered = filtered.filter((product) => {
+          const price = product.price
+          const min = minPrice ? Number.parseInt(minPrice) : 0
+          const max = maxPrice ? Number.parseInt(maxPrice) : Number.POSITIVE_INFINITY
+          return price >= min && price <= max
+        })
+      }
+
+      const limitedProducts = filtered.slice(0, displayCount)
+      setProducts(limitedProducts.length > 0 ? limitedProducts : allRankedProducts.slice(0, displayCount))
       setIsRefining(false)
-      setShowRefinement(false)
-    }, 2000)
+    }, 1000)
+  }
+
+  const handleShowMoreProducts = () => {
+    setIsLoadingMore(true)
+    setTimeout(() => {
+      const currentIds = products.map((p) => p._id)
+      const remainingProducts = allRankedProducts.filter((p) => !currentIds.includes(p._id))
+
+      const newProducts = remainingProducts.slice(0, 3)
+      setProducts((prev) => [...prev, ...newProducts])
+      setIsLoadingMore(false)
+    }, 1000)
+  }
+
+  const handleDisplayCountChange = (count: number) => {
+    setDisplayCount(count)
+    let filtered = allRankedProducts
+
+    if (minPrice || maxPrice) {
+      filtered = filtered.filter((product) => {
+        const price = product.price
+        const min = minPrice ? Number.parseInt(minPrice) : 0
+        const max = maxPrice ? Number.parseInt(maxPrice) : Number.POSITIVE_INFINITY
+        return price >= min && price <= max
+      })
+    }
+
+    const limitedProducts = filtered.slice(0, count)
+    setProducts(limitedProducts.length > 0 ? limitedProducts : allRankedProducts.slice(0, count))
   }
 
   const handleSendMessage = async () => {
@@ -123,7 +383,6 @@ export default function SearchResultsPage() {
     setChatInput("")
     setIsTyping(true)
 
-    // Simulate AI response
     setTimeout(() => {
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -140,39 +399,43 @@ export default function SearchResultsPage() {
     const lowerInput = input.toLowerCase()
 
     if (lowerInput.includes("compare") || lowerInput.includes("difference")) {
-      return "Great question! The Sony WH-1000XM5 has the best noise cancellation and 30-hour battery, while AirPods Pro excel in portability and Apple integration. The Bose QuietComfort 45 offers superior comfort for long sessions. Which aspect matters most to you?"
+      return "Great question! I can help you compare these products based on their AI scores and features. Each product has been ranked based on how well it matches your specific search criteria."
     } else if (lowerInput.includes("budget") || lowerInput.includes("cheap") || lowerInput.includes("price")) {
-      return "For budget-conscious buyers, I'd recommend the AirPods Pro at $249.99 as the best value. However, if you can stretch to $329.99, the Bose offers excellent comfort. Would you like me to find more budget-friendly alternatives?"
-    } else if (lowerInput.includes("battery") || lowerInput.includes("life")) {
-      return "The Sony WH-1000XM5 leads with 30 hours of battery life, followed by Bose at 24 hours, and AirPods Pro at 6 hours (30 with case). For long commutes, Sony is your best bet!"
-    } else if (lowerInput.includes("comfort") || lowerInput.includes("wear")) {
-      return "The Bose QuietComfort 45 is renowned for all-day comfort with plush ear cushions. Sony WH-1000XM5 is also very comfortable, while AirPods Pro are great for active use but may not suit everyone's ears for extended periods."
+      return "I can help you find products within your budget range. Use the price filter above to narrow down options, or let me know your specific budget and I'll recommend the best value options."
     } else {
-      return "That's an interesting question! Based on your search for commuting headphones, all three options excel in different ways. The Sony offers the best overall package, AirPods Pro are perfect for Apple users, and Bose prioritizes comfort. What specific aspect would you like me to elaborate on?"
+      return "That's an interesting question! I'm here to help you understand these AI-ranked recommendations. Each product has been scored based on how well it matches your search criteria. What specific aspect would you like me to elaborate on?"
     }
   }
 
+  const itemsPerPageOptions = [
+    { value: 3, label: "3 items per page" },
+    { value: 6, label: "6 items per page" },
+    { value: 9, label: "9 items per page" },
+    { value: 12, label: "12 items per page" },
+  ]
+
   return (
-    <div className="min-h-screen bg-background tech-background">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <div className="bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
               <div>
                 <h1 className="text-xl font-semibold text-foreground">AI Product Recommendations</h1>
-                <p className="text-sm text-muted-foreground">Based on your search: "{query}"</p>
+                <p className="text-sm text-muted-foreground">
+                  Based on your search: {pageData?.prompt}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={() => setShowRefinement(!showRefinement)}>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Refine Results
-                <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${showRefinement ? "rotate-180" : ""}`} />
-              </Button>
               <Button variant="outline" size="sm">
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
@@ -183,144 +446,134 @@ export default function SearchResultsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Refinement Panel */}
-        {showRefinement && (
-          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-            <h3 className="font-semibold text-foreground flex items-center">
-              <Sparkles className="w-5 h-5 mr-2 text-primary" />
-              Refine Your Search
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Budget Range</label>
-                <select className="w-full p-2 bg-background border border-border rounded-lg text-sm">
-                  <option>$200 - $400</option>
-                  <option>$100 - $300</option>
-                  <option>$300 - $500</option>
-                </select>
+        {pageData?.comparison && (
+          <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-xl p-6">
+            <div className="flex items-start space-x-4">
+              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-primary" />
               </div>
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Primary Use</label>
-                <select className="w-full p-2 bg-background border border-border rounded-lg text-sm">
-                  <option>Commuting</option>
-                  <option>Work from Home</option>
-                  <option>Travel</option>
-                  <option>Gaming</option>
-                </select>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">AI Product Comparison</h3>
+                <p className="text-muted-foreground leading-relaxed">{pageData.comparison.text}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Brand Preference</label>
-                <select className="w-full p-2 bg-background border border-border rounded-lg text-sm">
-                  <option>No preference</option>
-                  <option>Sony</option>
-                  <option>Apple</option>
-                  <option>Bose</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button onClick={handleRefineResults} disabled={isRefining}>
-                {isRefining ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Refining...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Apply Refinements
-                  </>
-                )}
-              </Button>
             </div>
           </div>
         )}
 
-        {/* AI Summary */}
-        <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-xl p-6">
-          <div className="flex items-start space-x-4">
-            <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-5 h-5 text-primary" />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-card/30 border border-border/50 rounded-lg p-4">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Product Recommendations</h2>
+            <p className="text-sm text-muted-foreground">
+              Showing {products.length} of {allRankedProducts.length} products • Ranked by AI score
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Price:</span>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  placeholder="Min"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className="w-20 px-2 py-1 bg-background border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 transition-colors"
+                />
+                <span className="text-muted-foreground text-sm">—</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="w-20 px-2 py-1 bg-background border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 transition-colors"
+                />
+                <Button
+                  onClick={handleRefineResults}
+                  disabled={isRefining}
+                  size="sm"
+                  variant="outline"
+                  className="px-3 py-1 h-8 text-xs bg-transparent"
+                >
+                  {isRefining ? <RefreshCw className="w-3 h-3 animate-spin" /> : "Apply"}
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">Why these products?</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Based on your search for noise-cancelling headphones for commuting, I've selected these three options
-                that excel in different areas. The Sony WH-1000XM5 offers the best overall noise cancellation and
-                battery life, perfect for long commutes. The AirPods Pro provide seamless integration if you're in the
-                Apple ecosystem with excellent portability. The Bose QuietComfort 45 delivers superior comfort for
-                extended wear with reliable performance.
-              </p>
+
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Items per page:</span>
+              <select
+                value={displayCount}
+                onChange={(e) => handleDisplayCountChange(Number(e.target.value))}
+                className="px-3 py-1 bg-background border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 min-w-[120px] transition-colors"
+              >
+                {itemsPerPageOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Product Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {products.map((product) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {products.map((product, index) => (
             <div
-              key={product.id}
-              className="bg-card border border-border rounded-xl overflow-hidden glow-effect hover:border-border/80 transition-all duration-200 flex flex-col"
+              key={product._id}
+              className="bg-card border border-border rounded-xl overflow-hidden hover:border-border/80 transition-all duration-200 flex flex-col group relative shadow-sm hover:shadow-md"
             >
-              {/* Product Image */}
+              {product.aiRank === 1 && (
+                <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1 z-10 shadow-lg">
+                  <Crown className="w-3 h-3" />
+                  <span className="font-medium">#1 Recommendation</span>
+                </div>
+              )}
+
+              <div
+                className={`absolute top-3 ${product.aiRank === 1 ? "right-3" : "left-3"} bg-primary/90 text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1`}
+              >
+                <Sparkles className="w-3 h-3" />
+                <span className="font-medium">{Math.round(product.hybridScore * 100)}% match</span>
+              </div>
+
               <div className="relative flex-shrink-0">
                 <img
                   src={product.image || "/placeholder.svg"}
                   alt={product.name}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-56 object-cover"
                 />
-                {!product.inStock && (
-                  <div className="absolute top-3 right-3 bg-red-500/90 text-white text-xs px-2 py-1 rounded-full">
-                    Out of Stock
-                  </div>
-                )}
-                <div className="absolute top-3 left-3 bg-primary/90 text-white text-xs px-2 py-1 rounded-full">
-                  {product.category}
+                <div
+                  className={`absolute top-3 ${product.aiRank === 1 ? "left-3" : "right-3"} bg-secondary/90 text-secondary-foreground text-xs px-2 py-1 rounded-full`}
+                >
+                  #{product.aiRank}
                 </div>
               </div>
 
-              {/* Product Info */}
               <div className="p-6 space-y-4 flex-1 flex flex-col">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-start justify-between gap-2">
+                <div className="space-y-3 flex-1">
+                  <div className="flex items-start justify-between gap-3">
                     <h3 className="font-semibold text-foreground text-lg leading-tight flex-1">{product.name}</h3>
-                    <span className="text-lg font-bold text-primary flex-shrink-0">{product.price}</span>
-                  </div>
-
-                  <div className="flex items-center space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-4 h-4 ${i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"}`}
-                      >
-                        ★
-                      </div>
-                    ))}
-                    <span className="text-sm text-muted-foreground ml-2">({product.rating})</span>
+                    <span className="text-xl font-bold text-primary flex-shrink-0">${product.price}</span>
                   </div>
 
                   <p className="text-muted-foreground text-sm leading-relaxed">{product.description}</p>
                 </div>
 
-                {/* AI Explanation */}
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-start space-x-2">
                     <Sparkles className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-foreground mb-1">AI Recommendation</p>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{product.aiExplanation}</p>
+                      <p className="text-sm font-medium text-foreground mb-1">AI Analysis</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{product.reason}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center justify-between pt-2 border-t border-border/50 mt-auto">
-                  <Button variant="outline" size="sm" onClick={() => handleSwapProduct(product.id)} className="text-xs">
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    Swap
-                  </Button>
-                  <Button size="sm" className="text-xs" disabled={!product.inStock}>
-                    {product.inStock ? "View Product" : "Notify When Available"}
+                <div className="flex justify-end pt-2 border-t border-border/50 mt-auto">
+                  <Button size="sm" className="text-xs px-6" asChild>
+                    <a href={product.url} target="_blank" rel="noopener noreferrer">
+                      View Product
+                    </a>
                   </Button>
                 </div>
               </div>
@@ -328,27 +581,32 @@ export default function SearchResultsPage() {
           ))}
         </div>
 
-        {/* CTA Section */}
-        <div className="bg-card border border-border rounded-xl p-8 text-center space-y-4">
-          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
-            <BookOpen className="w-8 h-8 text-primary" />
+        {products.length < allRankedProducts.length && (
+          <div className="flex justify-center pt-6">
+            <Button
+              onClick={handleShowMoreProducts}
+              disabled={isLoadingMore}
+              variant="outline"
+              size="lg"
+              className="px-8 bg-transparent"
+            >
+              {isLoadingMore ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Loading More...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Show More Products
+                </>
+              )}
+            </Button>
           </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-foreground">Love these recommendations?</h3>
-            <p className="text-muted-foreground">
-              Turn this curated list into a comprehensive buying guide to help others make informed decisions.
-            </p>
-          </div>
-          <Button
-            size="lg"
-            className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
-          >
-            <BookOpen className="w-5 h-5 mr-2" />
-            Publish as Guide
-          </Button>
-        </div>
+        )}
       </div>
 
+      {/* ... existing chat component code ... */}
       <div className="fixed bottom-6 right-6 z-50">
         {!showChat ? (
           <Button
@@ -426,22 +684,22 @@ export default function SearchResultsPage() {
               </div>
               <div className="flex flex-wrap gap-1">
                 <button
-                  onClick={() => setChatInput("Compare all three products")}
+                  onClick={() => setChatInput("Compare all products")}
                   className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-2 py-1 rounded-full transition-colors"
                 >
                   Compare all
                 </button>
                 <button
-                  onClick={() => setChatInput("Which has the best battery life?")}
+                  onClick={() => setChatInput("Which has the best value?")}
                   className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-2 py-1 rounded-full transition-colors"
                 >
-                  Battery life
+                  Best value
                 </button>
                 <button
-                  onClick={() => setChatInput("Show me cheaper alternatives")}
+                  onClick={() => setChatInput("Show me alternatives")}
                   className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-2 py-1 rounded-full transition-colors"
                 >
-                  Cheaper options
+                  Alternatives
                 </button>
               </div>
             </div>

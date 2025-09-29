@@ -5,6 +5,9 @@ import { internal } from "../_generated/api";
 import { formatTimeAgo } from "./helper";
 import { authComponent } from "../auth";
 import { api } from "../_generated/api";
+
+
+
 export const getUserByUserId = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
@@ -43,7 +46,6 @@ export const getPrompt = internalQuery({
     return doc?.prompt;
   },
 })
-
 
 export const getPageData = query({
   args: { id: v.string() },
@@ -95,11 +97,6 @@ type RecentActivity = {
   searchedBy: string,
   timeAgo: string,
 }
-//  title: "Best Wireless Headphones for Remote Work",
-//   category: "Electronics",
-//   searchedBy: "Sarah M.",
-//   timeAgo: "2 hours ago",
-
 export const getRecentActivity = query({
   args: {},
   handler: async (ctx, args) => {
@@ -163,3 +160,4 @@ export const getSearchHistory = query({
     }));
   }
 });
+

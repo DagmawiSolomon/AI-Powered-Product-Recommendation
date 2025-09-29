@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, RefreshCw, Share2, Sparkles, Send, MessageCircle, X, Plus, Crown, AlertCircle } from "lucide-react"
+import { ArrowLeft, RefreshCw, Share2, Sparkles, MessageCircle, X, Plus, Crown, AlertCircle, CircleStar, Trophy, Medal } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
@@ -13,9 +13,10 @@ import type { Id } from "../../../../convex/_generated/dataModel"
 import AIProcessingIndicator from "@/components/AIProcessingIndicator"
 import ExpandableText from "@/components/ExpandableText"
 import Loading from "./loading"
+import AIAssistantPopup from "@/components/ai_assistant"
+import { Checkbox } from "@/components/ui/checkbox"
 
-
-interface ProductWithRanking {
+export interface ProductWithRanking {
   _id: Id<"products">
   _creationTime: number
   name: string
@@ -41,20 +42,18 @@ interface ChatMessage {
 export default function SearchResultsPage() {
   const params = useParams()
   const searchId = params.id as string
-    const HybridSearchWorkFlow = useMutation(api.products.mutations.startHybirdSearchWorkflow)
+  const HybridSearchWorkFlow = useMutation(api.products.mutations.startHybirdSearchWorkflow)
 
   const status = useQuery(api.search_history.query.checkStatus, { id: searchId })
-  const pageData = useQuery(
-  api.search_history.query.getPageData,
-  status === "done" ? { id: searchId } : "skip"
-);
-  
-  if (status == "pending"){
+  const pageData = useQuery(api.search_history.query.getPageData, status === "done" ? { id: searchId } : "skip")
+
+  if (status == "pending") {
     HybridSearchWorkFlow({ searchId })
   }
- 
+
   const [products, setProducts] = useState<ProductWithRanking[]>([])
   const [allRankedProducts, setAllRankedProducts] = useState<ProductWithRanking[]>([])
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<Id<"products">>>(new Set())
   const [showChat, setShowChat] = useState(false)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
@@ -77,10 +76,10 @@ export default function SearchResultsPage() {
     if (pageData && status === "done") {
       const rankedProducts: ProductWithRanking[] = pageData.rankings
         .map((ranking) => {
-          if(!pageData) return
+          if (!pageData) return
           const product = pageData.products.find(
-              (p): p is NonNullable<typeof p> => p !== null && p._id === ranking.productId
-            )
+            (p): p is NonNullable<typeof p> => p !== null && p._id === ranking.productId,
+          )
           if (!product) return null
 
           return {
@@ -99,6 +98,27 @@ export default function SearchResultsPage() {
     }
   }, [pageData, status, displayCount])
 
+  const toggleProductSelection = (productId: Id<"products">) => {
+    setSelectedProductIds((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(productId)) {
+        newSet.delete(productId)
+      } else {
+        newSet.add(productId)
+      }
+      return newSet
+    })
+  }
+
+  const clearSelection = () => {
+    setSelectedProductIds(new Set())
+  }
+
+  const productsForAI =
+    selectedProductIds.size > 0
+      ? allRankedProducts.filter((product) => selectedProductIds.has(product._id))
+      : allRankedProducts
+
   if (status === undefined) {
     return (
       <div className="min-h-screen bg-background">
@@ -106,7 +126,7 @@ export default function SearchResultsPage() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="max-w-md w-full px-4">
             <div className="text-center space-y-6">
-              <Loading/>
+              <Loading />
             </div>
           </div>
         </div>
@@ -145,7 +165,7 @@ export default function SearchResultsPage() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="max-w-md w-full px-4">
             {status === "processing" ? (
-              <AIProcessingIndicator status="Running" />
+              <Loading/>
             ) : (
               <div className="text-center space-y-6">
                 <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
@@ -266,7 +286,6 @@ export default function SearchResultsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              
               <div>
                 <h1 className="text-xl font-semibold text-foreground">AI Product Recommendations</h1>
                 <p className="text-sm text-muted-foreground">
@@ -275,6 +294,12 @@ export default function SearchResultsPage() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              {selectedProductIds.size > 0 && (
+                <Button variant="outline" size="sm" onClick={clearSelection}>
+                  <X className="w-4 h-4 mr-2" />
+                  Clear Selection ({selectedProductIds.size})
+                </Button>
+              )}
               <Button variant="outline" size="sm">
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
@@ -293,11 +318,7 @@ export default function SearchResultsPage() {
               </div>
               <div className="space-y-2 flex-1">
                 <h3 className="font-semibold text-foreground">AI Product Comparison</h3>
-                <ExpandableText
-                  text={pageData.comparison.text}
-                  maxLength={1000}
-                  className="text-muted-foreground"
-                />
+                <ExpandableText text={pageData.comparison.text} maxLength={1000} className="text-muted-foreground" />
               </div>
             </div>
           </div>
@@ -307,125 +328,106 @@ export default function SearchResultsPage() {
           <div>
             <h2 className="text-lg font-semibold text-foreground">Product Recommendations</h2>
             <p className="text-sm text-muted-foreground">
-              Showing {products.length} of {allRankedProducts.length} products • Ranked by AI score
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-3 h-3" /> 
+               <span>Ranked by AI score</span>
+              </div>
+               
+              {selectedProductIds.size > 0 && ` • ${selectedProductIds.size} selected for AI chat`}
             </p>
           </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center space-x-3">
-              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Price:</span>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  className="w-20 px-2 py-1 bg-background border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 transition-colors"
-                />
-                <span className="text-muted-foreground text-sm">—</span>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-20 px-2 py-1 bg-background border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 transition-colors"
-                />
-                <Button
-                  onClick={handleRefineResults}
-                  disabled={isRefining}
-                  size="sm"
-                  variant="outline"
-                  className="px-3 py-1 h-8 text-xs bg-transparent"
-                >
-                  {isRefining ? <RefreshCw className="w-3 h-3 animate-spin" /> : "Apply"}
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Items per page:</span>
-              <select
-                value={displayCount}
-                onChange={(e) => handleDisplayCountChange(Number(e.target.value))}
-                className="px-3 py-1 bg-background border border-border rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 min-w-[120px] transition-colors"
-              >
-                {itemsPerPageOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Showing {products.length} of {allRankedProducts.length} products</p>
           </div>
+
+   
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((product, index) => (
-            <div
-              key={product._id}
-              className="bg-card border border-border rounded-xl overflow-hidden hover:border-border/80 transition-all duration-200 flex flex-col group relative shadow-sm hover:shadow-md"
-            >
-              {product.aiRank === 1 && (
-                <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1 z-10 shadow-lg">
-                  <Crown className="w-3 h-3" />
-                  <span className="font-medium">#1 Recommendation</span>
-                </div>
-              )}
-
+          {products.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center col-span-full">
+              <p>No products found</p>
+            </div>
+          ) : (
+            products.map((product, index) => (
               <div
-                className={`absolute top-3 ${product.aiRank === 1 ? "right-3" : "left-3"} bg-primary/90 text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1`}
+                key={product._id}
+                className="bg-card border border-border rounded-xl overflow-hidden hover:border-border/80 transition-all duration-200 flex flex-col group relative shadow-sm hover:shadow-md"
               >
-                <Sparkles className="w-3 h-3" />
-                <span className="font-medium">{Math.round(product.hybridScore * 100)}% match</span>
-              </div>
-
-              <div className="relative flex-shrink-0">
-                <img
-                  src={product.image || "/placeholder.svg"}
-                  alt={product.name}
-                  className="w-full h-56 object-cover"
-                />
-                <div
-                  className={`absolute top-3 ${product.aiRank === 1 ? "left-3" : "right-3"} bg-secondary/90 text-secondary-foreground text-xs px-2 py-1 rounded-full`}
-                >
-                  #{product.aiRank}
+                <div className="absolute top-3 left-3 z-20">
+                  
+                    <Checkbox
+                      checked={selectedProductIds.has(product._id)}
+                      onCheckedChange={() => toggleProductSelection(product._id)}
+                      className="w-4 h-4"
+                    />
+                 
                 </div>
-              </div>
 
-              <div className="p-6 space-y-4 flex-1 flex flex-col">
-                <div className="space-y-3 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-semibold text-foreground text-lg leading-tight flex-1">{product.name}</h3>
-                    <span className="text-xl font-bold text-primary flex-shrink-0">${product.price}</span>
+                {product.aiRank === 1 && (
+                  <div className="absolute top-3 right-3 bg-gradient-to-l from-primary to-accent-foreground text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1 z-10 shadow-lg">
+                    <Trophy className="w-3 h-3" />
+                    <span className="font-medium">1</span>
+                  </div>
+                )}
+
+
+
+                <div className="relative flex-shrink-0">
+                  <img
+                    src={product.image || "/placeholder.svg"}
+                    alt={product.name}
+                    className="w-full h-56 object-cover"
+                  />
+                  {product.aiRank !== 1 && (
+                    <div
+                      className="absolute top-3 right-3 bg-chart-2 text-white text-xs px-2 py-1 rounded-full"
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        <Medal className="w-3 h-3" />
+                      <span>{product.aiRank}</span>
+                      </div>
+                      
+                    </div>
+                  )}
+
+                </div>
+
+                <div className="p-6 space-y-4 flex-1 flex flex-col">
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-semibold text-foreground text-lg leading-tight flex-1">{product.name}</h3>
+                      <span className="text-xl font-bold text-primary flex-shrink-0">${product.price}</span>
+                    </div>
+
+                    <ExpandableText
+                      text={product.description}
+                      maxLength={100}
+                      className="text-muted-foreground text-sm"
+                    />
                   </div>
 
-                  <ExpandableText
-                    text={product.description}
-                    maxLength={100}
-                    className="text-muted-foreground text-sm"
-                  />
-                </div>
-
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                  <div className="flex items-start space-x-2">
-                    <Sparkles className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground mb-1">AI Analysis</p>
-          {product.reason}
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <div className="flex items-start space-x-2">
+                      <Sparkles className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-foreground mb-1">AI Analysis</p>
+                        {product.reason}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex justify-end pt-2 border-t border-border/50 mt-auto">
-                  <Button size="sm" className="text-xs px-6" asChild>
-                    <a href={product.url} target="_blank" rel="noopener noreferrer">
-                      View Product
-                    </a>
-                  </Button>
+                  <div className="flex justify-end pt-2 border-t border-border/50 mt-auto">
+                    <Button size="sm" className="text-xs px-6" asChild>
+                      <a href={product.url} target="_blank" rel="noopener noreferrer">
+                        View Product
+                      </a>
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {products.length < allRankedProducts.length && (
@@ -439,7 +441,7 @@ export default function SearchResultsPage() {
             >
               {isLoadingMore ? (
                 <>
-                  <Loading/>
+                  <Loading />
                 </>
               ) : (
                 <>
@@ -452,7 +454,6 @@ export default function SearchResultsPage() {
         )}
       </div>
 
-      {/* Existing chat component code */}
       <div className="fixed bottom-6 right-6 z-50">
         {!showChat ? (
           <Button
@@ -463,93 +464,20 @@ export default function SearchResultsPage() {
             <MessageCircle className="w-6 h-6" />
           </Button>
         ) : (
-          <div className="bg-card border border-border rounded-xl shadow-2xl w-96 max-w-[calc(100vw-3rem)] overflow-hidden">
-            <div className="bg-primary/5 border-b border-border px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground text-sm">AI Assistant</h3>
-                  <p className="text-xs text-muted-foreground">Ask me about these products</p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setShowChat(false)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="h-80 overflow-y-auto p-4 space-y-3">
-              {chatMessages.map((message) => (
-                <div key={message.id} className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                      message.type === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-current rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-current rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-border p-3">
-              <div className="flex space-x-2 mb-2">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="Ask about these products..."
-                  className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
-                />
-                <Button size="sm" onClick={handleSendMessage} disabled={!chatInput.trim() || isTyping}>
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                <button
-                  onClick={() => setChatInput("Compare all products")}
-                  className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-2 py-1 rounded-full transition-colors"
-                >
-                  Compare all
-                </button>
-                <button
-                  onClick={() => setChatInput("Which has the best value?")}
-                  className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-2 py-1 rounded-full transition-colors"
-                >
-                  Best value
-                </button>
-                <button
-                  onClick={() => setChatInput("Show me alternatives")}
-                  className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-2 py-1 rounded-full transition-colors"
-                >
-                  Alternatives
-                </button>
-              </div>
-            </div>
-          </div>
+          <AIAssistantPopup
+            context={productsForAI.map((product) => ({
+              _id: product._id,
+              _creationTime: product._creationTime,
+              name: product.name,
+              category: product.category,
+              description: product.description,
+              price: product.price,
+              tags: product.tags,
+              aiRank: product.aiRank,
+              hybridScore: product.hybridScore,
+              reason: product.reason,
+            }))}
+          />
         )}
       </div>
     </div>

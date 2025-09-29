@@ -3,8 +3,8 @@ import { v } from "convex/values";
 import { Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
 import { formatTimeAgo } from "./helper";
-
-
+import { authComponent } from "../auth";
+import { api } from "../_generated/api";
 export const getUserByUserId = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
@@ -57,8 +57,14 @@ export const getPageData = query({
       .collect();
 
     // 2. Get all unique productIds from the rankings
-    const productIds = Array.from(new Set(rankings.map(r => r.productId)));
-    
+    const productIds = Array.from(
+      new Set(
+        rankings
+          .filter(r => (r.hybridScore ?? 0) > 0.03) 
+          .map(r => r.productId)
+      )
+);
+
 
     // 3. Fetch all products by their IDs
     const products = await Promise.all(
@@ -118,4 +124,39 @@ export const getRecentActivity = query({
       })
     );
   },
+});
+
+export const getSearchHistory = query({
+  args: {},
+  handler: async (ctx) => {
+    const currentUser = await authComponent.getAuthUser(ctx);
+
+    if (!currentUser._id) {
+      throw new Error("User ID is missing");
+    }
+
+    // Find the user in your Convex "users" table by userId
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_userId", (q) => q.eq("userId", currentUser._id!))
+      .unique();
+
+    if (!user) {
+      throw new Error("User not found in users table");
+    }
+
+    // Query the search_history table for this user
+    const history = await ctx.db
+      .query("search_history")
+      .withIndex("by_user", (q) => q.eq("user", user._id))
+      .order("desc")
+      .collect();
+
+    
+    return history.map((search) => ({
+      id: search._id as string,
+      query: search.prompt, 
+      timestamp: new Date(search.updatedAt), 
+    }));
+  }
 });

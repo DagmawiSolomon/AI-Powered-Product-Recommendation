@@ -129,7 +129,9 @@ export const HybridSearchWorkFlow = internalAction({
       };
     });
 
-    await ctx.runMutation(api.rankings.mutations.createRankings, {rankings: final_Rankings});
+    if(final_Rankings && final_Rankings.length > 0){
+      await ctx.runMutation(api.rankings.mutations.createRankings, {rankings: final_Rankings});
+    }
     
 
     const final_result:  llm_ranking_json = {

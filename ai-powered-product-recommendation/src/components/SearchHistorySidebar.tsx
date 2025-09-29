@@ -14,124 +14,58 @@ import {
   SidebarMenuButton,
   SidebarMenuAction,
 } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useQuery } from "convex/react"
+import { api } from "../../convex/_generated/api"
+
+
 
 interface SearchHistoryItem {
   id: string
   query: string
-  timestamp: Date
+  timestamp: number
 }
 
 interface SearchHistorySidebarProps {
   onSearchSelect?: (query: string) => void
 }
 
-const dummySearchHistory: SearchHistoryItem[] = [
-  {
-    id: "1",
-    query: "best wireless headphones for work",
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-  },
-  {
-    id: "2",
-    query: "ergonomic office chair under $500",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-  },
-  {
-    id: "3",
-    query: "mechanical keyboard for programming",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-  },
-  {
-    id: "4",
-    query: "4K monitor for graphic design",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-  },
-  {
-    id: "5",
-    query: "standing desk converter",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-  },
-  {
-    id: "6",
-    query: "noise cancelling earbuds for travel",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-  },
-]
+
 
 export function SearchHistorySidebar({ onSearchSelect }: SearchHistorySidebarProps) {
-  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>(dummySearchHistory)
+  // ✅ Call useQuery at the top level
+  const queryResult = useQuery(api.search_history.query.getSearchHistory, {});
 
-  // Load search history from localStorage on mount
+  // Safely get fetched history (default to empty array if undefined)
+  const fetchedSearchHistory: SearchHistoryItem[] = queryResult ?? [];
+
+  // Local state
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>(fetchedSearchHistory);
+
+  // Update local state only when fetchedSearchHistory changes
   useEffect(() => {
-    const savedHistory = localStorage.getItem("searchHistory")
-    if (savedHistory) {
-      try {
-        const parsed = JSON.parse(savedHistory).map((item: any) => ({
-          ...item,
-          timestamp: new Date(item.timestamp),
-        }))
-        setSearchHistory(parsed)
-      } catch (error) {
-        console.error("Failed to parse search history:", error)
-        setSearchHistory(dummySearchHistory)
-      }
+    // Optional: shallow compare to avoid unnecessary setState
+    const isEqual =
+      searchHistory.length === fetchedSearchHistory.length &&
+      searchHistory.every((item, i) => item.id === fetchedSearchHistory[i]?.id);
+
+    if (!isEqual) {
+      setSearchHistory(fetchedSearchHistory);
     }
-  }, [])
-
-  // Save search history to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("searchHistory", JSON.stringify(searchHistory))
-  }, [searchHistory])
-
-  // Function to add a new search to history
-  const addToHistory = (query: string) => {
-    if (!query.trim()) return
-
-    const newItem: SearchHistoryItem = {
-      id: Date.now().toString(),
-      query: query.trim(),
-      timestamp: new Date(),
-    }
-
-    setSearchHistory((prev) => {
-      // Remove duplicate if exists
-      const filtered = prev.filter((item) => item.query !== query.trim())
-      // Add new item at the beginning and limit to 50 items
-      return [newItem, ...filtered].slice(0, 50)
-    })
-  }
-
-  // Function to remove a specific search from history
-  const removeFromHistory = (id: string) => {
-    setSearchHistory((prev) => prev.filter((item) => item.id !== id))
-  }
-
-  // Function to clear all history
-  const clearHistory = () => {
-    setSearchHistory([])
-  }
+  }, [fetchedSearchHistory, searchHistory]);
 
   // Function to format timestamp
-  const formatTimestamp = (timestamp: Date) => {
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60 * 60))
-
-    if (diffInHours < 1) {
-      return "Just now"
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24)
-      return `${diffInDays}d ago`
-    }
+  const formatTimestamp = (timestamp: number) => {
+      const diff = Date.now() - timestamp
+      const minutes = Math.floor(diff / 60000)
+      if (minutes < 1) return "just now"
+      if (minutes < 60) return `${minutes} min ago`
+      const hours = Math.floor(minutes / 60)
+      if (hours < 24) return `${hours} hours ago`
+      const days = Math.floor(hours / 24)
+      return `${days} days ago`
   }
 
-  // Expose addToHistory function globally so SearchInput can use it
-  useEffect(() => {
-    ;(window as any).addToSearchHistory = addToHistory
-  }, [])
 
   return (
     <Sidebar side="right" variant="floating" collapsible="offcanvas">
@@ -141,16 +75,7 @@ export function SearchHistorySidebar({ onSearchSelect }: SearchHistorySidebarPro
             <Clock className="w-4 h-4 text-sidebar-foreground" />
             <span className="font-semibold text-sidebar-foreground">Search History</span>
           </div>
-          {searchHistory.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearHistory}
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="w-3 h-3" />
-            </Button>
-          )}
+         
         </div>
       </SidebarHeader>
 
@@ -176,9 +101,7 @@ export function SearchHistorySidebar({ onSearchSelect }: SearchHistorySidebarPro
                         <span className="text-sm font-medium truncate w-full">{item.query}</span>
                         <span className="text-xs text-muted-foreground">{formatTimestamp(item.timestamp)}</span>
                       </SidebarMenuButton>
-                      <SidebarMenuAction onClick={() => removeFromHistory(item.id)} showOnHover>
-                        <X className="w-3 h-3" />
-                      </SidebarMenuAction>
+                      
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>

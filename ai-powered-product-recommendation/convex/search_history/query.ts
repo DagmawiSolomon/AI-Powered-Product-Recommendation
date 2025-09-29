@@ -150,13 +150,16 @@ export const getSearchHistory = query({
       .query("search_history")
       .withIndex("by_user", (q) => q.eq("user", user._id))
       .order("desc")
-      .collect();
+      .collect()
+    
+   
+      
 
     
     return history.map((search) => ({
       id: search._id as string,
       query: search.prompt, 
-      timestamp: new Date(search.updatedAt), 
+      timestamp: search.updatedAt, 
     }));
   }
 });

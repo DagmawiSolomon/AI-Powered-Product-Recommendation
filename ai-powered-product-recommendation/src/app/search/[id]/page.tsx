@@ -12,6 +12,7 @@ import { api } from "../../../../convex/_generated/api"
 import type { Id } from "../../../../convex/_generated/dataModel"
 import AIProcessingIndicator from "@/components/AIProcessingIndicator"
 import ExpandableText from "@/components/ExpandableText"
+import Loading from "./loading"
 
 
 interface ProductWithRanking {
@@ -105,13 +106,7 @@ export default function SearchResultsPage() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="max-w-md w-full px-4">
             <div className="text-center space-y-6">
-              <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
-                <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-foreground">Loading...</h2>
-                <p className="text-muted-foreground">Please wait while we fetch your results</p>
-              </div>
+              <Loading/>
             </div>
           </div>
         </div>
@@ -444,8 +439,7 @@ export default function SearchResultsPage() {
             >
               {isLoadingMore ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Loading More...
+                  <Loading/>
                 </>
               ) : (
                 <>

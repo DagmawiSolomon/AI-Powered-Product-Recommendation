@@ -21,6 +21,7 @@ import type * as products_productFields from "../products/productFields.js";
 import type * as products_query from "../products/query.js";
 import type * as rankings_helpers from "../rankings/helpers.js";
 import type * as rankings_mutations from "../rankings/mutations.js";
+import type * as search_history_action from "../search_history/action.js";
 import type * as search_history_helper from "../search_history/helper.js";
 import type * as search_history_mutations from "../search_history/mutations.js";
 import type * as search_history_query from "../search_history/query.js";
@@ -58,6 +59,7 @@ declare const fullApi: ApiFromModules<{
   "products/query": typeof products_query;
   "rankings/helpers": typeof rankings_helpers;
   "rankings/mutations": typeof rankings_mutations;
+  "search_history/action": typeof search_history_action;
   "search_history/helper": typeof search_history_helper;
   "search_history/mutations": typeof search_history_mutations;
   "search_history/query": typeof search_history_query;

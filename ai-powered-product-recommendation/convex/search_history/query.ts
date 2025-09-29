@@ -2,7 +2,9 @@ import { internalQuery, query } from "../_generated/server";
 import { v } from "convex/values";
 import { Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
-// This query expects a userId (string) and returns the matching user from your "users" table
+import { formatTimeAgo } from "./helper";
+
+
 export const getUserByUserId = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
@@ -77,5 +79,41 @@ export const getPageData = query({
       products,
       comparison,
     };
+  },
+});
+
+
+type RecentActivity = {
+  title: string,
+  searchedBy: string,
+  timeAgo: string,
+}
+//  title: "Best Wireless Headphones for Remote Work",
+//   category: "Electronics",
+//   searchedBy: "Sarah M.",
+//   timeAgo: "2 hours ago",
+
+export const getRecentActivity = query({
+  args: {},
+  handler: async (ctx, args) => {
+    const recent_searches = await ctx.db
+      .query("search_history")
+      .withIndex("by_updatedAt", (q) => q)
+      .order("desc")
+      .take(5);
+
+    return await Promise.all(
+      recent_searches.map(async (search) => {
+       
+        const user = await ctx.db.get(search.user); 
+        const timeAgo = formatTimeAgo(search._creationTime); 
+
+        return {
+          title: search.prompt,
+          searchedBy: user?.name ?? "Unknown",
+          timeAgo,
+        };
+      })
+    );
   },
 });

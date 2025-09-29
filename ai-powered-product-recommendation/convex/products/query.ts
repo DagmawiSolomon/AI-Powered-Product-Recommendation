@@ -5,20 +5,20 @@ import { Id } from "../_generated/dataModel";
 function applyFilter<T>(
   q: any, 
   filter: any
-) {
-  const field = q.field(filter.field as any); // cast if schema mismatch
+) {  const field = q.field(filter.field as any)
+; // cast if schema mismatch
 
   switch (filter.operator) {
     case "=":
-      return q.eq(field, filter.value);
+      return q.filter((q: any) => q.eq(q.field("price"), 100));
     case "<":
-      return q.lt(field, filter.value as number);
+      return q.filter((q: any) => q.lt(q.field("price"), 100));;
     case ">":
-      return q.gt(field, filter.value as number);
+      return q.filter((q: any) => q.gt(q.field("price"), 100));;
     case "<=":
-      return q.lte(field, filter.value as number);
+      return q.filter((q: any) => q.lte(q.field("price"), 100));;
     case ">=":
-      return q.gte(field, filter.value as number);
+      return q.filter((q: any) => q.gte(q.field("price"), 100));;
     default:
       throw new Error(`Unsupported operator: ${filter.operator}`);
   }
@@ -27,7 +27,7 @@ function applyFilter<T>(
 export const fetchResults = internalQuery({
   args: { ids: v.array(v.id("products")) },
   handler: async (ctx, args) => {
-    const results = [];
+    const results:any[] = [];
     for (const id of args.ids) {
       const doc = await ctx.db.get(id);
       if (doc === null) {
@@ -83,10 +83,27 @@ export const FTS_Results = internalQuery({
 
       if(filters){
     
-    for (const filter of filters) {
-      query = applyFilter(query, filter);
-    
-    }
+      for (const filter of filters) {
+        switch (filter.operator.trim()){
+            case "=":
+            query  = query.filter(q => q.eq(q.field("price"), filter.value));
+            break;
+            case "<":
+            query = query.filter(q => q.lt(q.field("price"), filter.value));
+            break;
+            case ">":
+            query = query.filter(q => q.gt(q.field("price"), filter.value));
+            break;
+            case "<=":
+            query = query.filter(q => q.lte(q.field("price"), filter.value));
+            break;
+            case ">=":
+            query = query.filter(q => q.gte(q.field("price"), filter.value));
+            break;
+            default:
+              throw new Error(`Unsupported operator: ${filter.operator}`);
+        }
+      }
   }
     const docs = await query.collect();
     return docs.map((doc, i) => ({

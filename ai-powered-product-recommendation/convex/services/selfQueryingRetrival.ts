@@ -10,12 +10,12 @@ Task:
 Given a natural language user query, output a JSON object containing:
 semantic_query – a text string suitable for embedding-based semantic search.
 keyword_query – a string containing keywords for exact match or traditional search.
-filters – an array of structured filter objects. Only include filters for the fields: price, brand, or color.
+filters – an array of structured filter objects. Only include filters for the fields: price.
 Product Table Schema (Allowed Fields)
 FieldType_idIdtitlestringdescriptionstringcategorystringbrandstringcolorstringpricenumbertagsstring[]image_urlstringembeddingnumber[]product_urlstring
 Rules:
 
-Only create filters for price, brand, or color.
+Only create filters for price.
 Each filter object must contain:
 "field" – one of the three allowed fields
 "operator" – one of "=", "<", ">", "<=", ">=",
@@ -30,20 +30,10 @@ User Query: "Find red shoes under $100 from Nike"
   "keyword_query": "red shoes",
   "filters": [
     {
-      "field": "color",
-      "operator": "=",
-      "value": "red"
-    },
-    {
       "field": "price",
       "operator": "<",
       "value": 100
     },
-    {
-      "field": "brand",
-      "operator": "=",
-      "value": "Nike"
-    }
   ]
 }`;
 

@@ -17,6 +17,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useQuery } from "convex/react"
 import { api } from "../../convex/_generated/api"
+import Link from "next/link"
 
 
 
@@ -93,16 +94,18 @@ export function SearchHistorySidebar({ onSearchSelect }: SearchHistorySidebarPro
               ) : (
                 <SidebarMenu>
                   {searchHistory.map((item) => (
+                   
                     <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        onClick={() => onSearchSelect?.(item.query)}
-                        className="flex flex-col items-start gap-1 h-auto py-2 text-left"
-                      >
-                        <span className="text-sm font-medium truncate w-full">{item.query}</span>
-                        <span className="text-xs text-muted-foreground">{formatTimestamp(item.timestamp)}</span>
-                      </SidebarMenuButton>
-                      
-                    </SidebarMenuItem>
+  <Link href={`/search/${item.id}`} className="w-full">
+    <SidebarMenuButton className="flex flex-col items-start gap-1 h-auto py-2 text-left">
+      <span className="text-sm font-medium truncate w-full">{item.query}</span>
+      <span className="text-xs text-muted-foreground">
+        {formatTimestamp(item.timestamp)}
+      </span>
+    </SidebarMenuButton>
+  </Link>
+</SidebarMenuItem>
+                  
                   ))}
                 </SidebarMenu>
               )}

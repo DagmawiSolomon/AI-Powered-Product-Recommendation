@@ -84,6 +84,7 @@ export const getPageData = query({
 
 
 type RecentActivity = {
+  id: string
   title: string,
   searchedBy: string,
   timeAgo: string,
@@ -109,6 +110,7 @@ export const getRecentActivity = query({
         const timeAgo = formatTimeAgo(search._creationTime); 
 
         return {
+          id: search._id,
           title: search.prompt,
           searchedBy: user?.name ?? "Unknown",
           timeAgo,

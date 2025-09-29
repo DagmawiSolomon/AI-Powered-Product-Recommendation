@@ -24,7 +24,7 @@ export const createRankings = mutation({
         });
       }
      }
-   if (aiSelections) {
+   if (aiSelections && aiSelections.length > 0) {
       await ctx.scheduler.runAfter(0, internal.comparisons.actions.generateComparison, {
         search_id,
         aiSelections

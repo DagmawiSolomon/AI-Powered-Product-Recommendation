@@ -100,7 +100,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
               variant={"outline"}
               size={"lg"}
               disabled={!prompt.trim()}
-              className="disabled:opacity-50 disabled:cursor-not-allowed p-6 rounded-full"
+              className="disabled:opacity-50 disabled:cursor-not-allowed p-6 rounded-full w-fit overflow-hidden"
             >
               <Sparkles />
             </Button>

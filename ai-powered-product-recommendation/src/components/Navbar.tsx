@@ -26,14 +26,14 @@ export function Navbar() {
   const [isSignInOpen, setIsSignInOpen] = useState(false)
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="w-screen bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-6 py-6">
         <div className="flex justify-between items-center">
           <ModernLogo />
 
           <Unauthenticated>
             <div className="flex items-center space-x-5">
-              <GitHubStarsButton username="DagmawiSolomon" repo="AI-Powered-Product-Recommendation" />
+
               <Dialog open={isSignInOpen} onOpenChange={setIsSignInOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -55,7 +55,7 @@ export function Navbar() {
 
           <AuthLoading>
             <div className="flex items-center space-x-5">
-              <GitHubStarsButton username="DagmawiSolomon" repo="AI-Powered-Product-Recommendation" />
+
               <Button variant="ghost" size="lg" disabled className="font-medium opacity-50">
                 Sign In
               </Button>
@@ -65,7 +65,6 @@ export function Navbar() {
 
           <Authenticated>
             <div className="flex items-center space-x-5">
-              <GitHubStarsButton username="DagmawiSolomon" repo="AI-Powered-Product-Recommendation" />
               <Button
                 variant="outline"
                 size="lg"

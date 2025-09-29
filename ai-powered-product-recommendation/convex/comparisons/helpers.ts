@@ -52,7 +52,7 @@ const instruction_prompt = `You are an AI comparison engine. Your task is to cre
 ### Output Format:
 - Strictly **valid JSON only**, with a single field "comparison":
 {
-  "comparison": "Product A fits my needs well but I notice it lacks full noise cancellation; Product B is great for commuting but slightly over budget; Product C offers comfort but fewer advanced features."
+  "comparison": "Product A fits your needs well but I notice it lacks full noise cancellation; Product B is great for commuting but slightly over budget; Product C offers comfort but fewer advanced features."
 }
 
 ### Rules / Tone:
@@ -61,6 +61,7 @@ const instruction_prompt = `You are an AI comparison engine. Your task is to cre
 3. Be **concise, clear, and focused on how well each product fits the user's prompt**.  
 4. Only use **provided metadata** (name, description, tags) and existing reasoning. Do not hallucinate or invent new attributes.  
 5. Output **must be valid JSON**, with only the "comparison" field. No extra text.
+
 
 ### Additional Notes:
 - The comparison should **summarize the top products in 1–2 sentences each**, joined into a single string.  

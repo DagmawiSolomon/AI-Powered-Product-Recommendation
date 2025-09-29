@@ -58,13 +58,13 @@ export const getPageData = query({
 
     // 2. Get all unique productIds from the rankings
     const productIds = Array.from(new Set(rankings.map(r => r.productId)));
+    
 
     // 3. Fetch all products by their IDs
-    const products = [];
-    for (const productId of productIds) {
-      const product = await ctx.db.get(productId);
-      if (product) products.push(product);
-    }
+    const products = await Promise.all(
+      productIds.map((productId) => ctx.db.get(productId))
+    ) ?? [];
+
 
     // 4. Get the comparison associated with the search_history
     const comparison = await ctx.db

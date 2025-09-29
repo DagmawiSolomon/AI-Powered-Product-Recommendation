@@ -12,7 +12,7 @@ import { api } from "../../../../convex/_generated/api"
 import type { Id } from "../../../../convex/_generated/dataModel"
 import AIProcessingIndicator from "@/components/AIProcessingIndicator"
 import ExpandableText from "@/components/ExpandableText"
-import Image from "next/image"
+
 
 interface ProductWithRanking {
   _id: Id<"products">
@@ -77,7 +77,9 @@ export default function SearchResultsPage() {
       const rankedProducts: ProductWithRanking[] = pageData.rankings
         .map((ranking) => {
           if(!pageData) return
-          const product = pageData.products.find((p) => p._id === ranking.productId)
+          const product = pageData.products.find(
+              (p): p is NonNullable<typeof p> => p !== null && p._id === ranking.productId
+            )
           if (!product) return null
 
           return {
@@ -148,7 +150,7 @@ export default function SearchResultsPage() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="max-w-md w-full px-4">
             {status === "processing" ? (
-              <AIProcessingIndicator />
+              <AIProcessingIndicator status="Running" />
             ) : (
               <div className="text-center space-y-6">
                 <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
@@ -269,17 +271,11 @@ export default function SearchResultsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
+              
               <div>
                 <h1 className="text-xl font-semibold text-foreground">AI Product Recommendations</h1>
                 <p className="text-sm text-muted-foreground">
                   {`Based on your search: "${pageData?.prompt || "Loading..."}"`}
-                  Based on your search: &quot;{pageData?.prompt || "Loading..."}&quot;
                 </p>
               </div>
             </div>
@@ -302,7 +298,11 @@ export default function SearchResultsPage() {
               </div>
               <div className="space-y-2 flex-1">
                 <h3 className="font-semibold text-foreground">AI Product Comparison</h3>
-                {pageData.comparison.text} maxLength={200}
+                <ExpandableText
+                  text={pageData.comparison.text}
+                  maxLength={1000}
+                  className="text-muted-foreground"
+                />
               </div>
             </div>
           </div>
@@ -385,8 +385,7 @@ export default function SearchResultsPage() {
               </div>
 
               <div className="relative flex-shrink-0">
-                <Image
-                  fill
+                <img
                   src={product.image || "/placeholder.svg"}
                   alt={product.name}
                   className="w-full h-56 object-cover"

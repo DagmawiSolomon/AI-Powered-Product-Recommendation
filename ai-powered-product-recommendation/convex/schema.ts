@@ -8,7 +8,7 @@ export default defineSchema({
   search_history: defineTable({
   ...searchHistoryFields,
   user: v.id("users")
-}).index("by_user", ["user"]),
+}).index("by_user", ["user"]).index("by_updatedAt", ["updatedAt"]),
   users: defineTable({
     name: v.string(),
     userId: v.string(), 

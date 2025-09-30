@@ -81,6 +81,54 @@ export type llm_ranking_json = {
 }
 
 
+export const SelfQueryingRetrivalAction  = internalAction({
+  args: {
+    query: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const response = await semanticQueryParser(args.query)
+    return response;
+  }
+})
+
+export const reciprocalRankingFusionAction = internalAction({
+  args: {
+    lists: v.array(
+      v.array(
+        v.object({
+          id: v.id("products"),
+          rank: v.number(),
+        })
+      )
+    ),
+    k: v.optional(v.number()),
+  },
+  handler: async (_ctx, args) => {
+    return ReciprocalRankingFusion(args.lists, args.k ?? 60);
+  },
+});
+
+export const llmRankingAction = internalAction({
+  args: {
+    query: v.string(),
+    results: v.array(
+      v.object({
+        _id: v.id("products"),
+        name: v.string(),
+        description: v.string(),
+        category: v.string(),
+        tags: v.array(v.string()),
+      })
+    ),
+  },
+  handler: async (_ctx, args) => {
+    return await llm_ranking({
+      query: args.query,
+      results: args.results,
+    });
+  },
+});
+
 export const HybridSearchWorkFlow = internalAction({
   args: {
     search_id: v.id("search_history"),
@@ -130,7 +178,7 @@ export const HybridSearchWorkFlow = internalAction({
     });
 
     if(final_Rankings && final_Rankings.length > 0){
-      await ctx.runMutation(api.rankings.mutations.createRankings, {rankings: final_Rankings});
+      await ctx.runMutation(internal.rankings.mutations.createRankings, {rankings: final_Rankings});
     }
     
 
@@ -138,16 +186,18 @@ export const HybridSearchWorkFlow = internalAction({
       output:llm_ranking_results,
       products: products.map(p => ({ _id: p._id,}))}
 
-    await ctx.runMutation(api.search_history.mutations.UpdateSearchHistory, {
+    await ctx.runMutation(internal.search_history.mutations.UpdateSearchHistory, {
       id: args.search_id as Id<'search_history'>,
       status: "done",
       result: JSON.stringify(final_result),
       error_message: ""
     });
-    // update history and save in the database
+    // update search_history status and save in the database
     
-    // save into the database 
+  
     return final_result
 
   }
 })
+
+

@@ -36,6 +36,7 @@ export const generateComparison = internalAction({
         name: p.name,
         description: p.description,
         tags: p.tags,
+        price: p.price,
         reasoning: selection ? selection.reasoning : "",
       };
     });

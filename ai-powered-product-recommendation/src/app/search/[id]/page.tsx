@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, RefreshCw, Share2, Sparkles, MessageCircle, X, Plus, Crown, AlertCircle, CircleStar, Trophy, Medal } from "lucide-react"
+import { ArrowLeft, RefreshCw, Share2, Sparkles, MessageCircle, X, Plus, Crown, AlertCircle, CircleStar, Trophy, Medal, DivideCircleIcon } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Navbar } from "@/components/Navbar"
@@ -15,6 +15,7 @@ import ExpandableText from "@/components/ExpandableText"
 import Loading from "./loading"
 import AIAssistantPopup from "@/components/ai_assistant"
 import { Checkbox } from "@/components/ui/checkbox"
+import {WorkflowProgress} from "@/components/WorkflowProgress"
 
 export interface ProductWithRanking {
   _id: Id<"products">
@@ -45,6 +46,7 @@ export default function SearchResultsPage() {
   const HybridSearchWorkFlow = useMutation(api.products.mutations.startHybirdSearchWorkflow)
 
   const status = useQuery(api.search_history.query.checkStatus, { id: searchId })
+  const step = useQuery(api.search_history.query.getSearchHistoryStep, { id: searchId })
   const pageData = useQuery(api.search_history.query.getPageData, status === "done" ? { id: searchId } : "skip")
 
   if (status == "pending") {
@@ -165,7 +167,10 @@ export default function SearchResultsPage() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="max-w-md w-full px-4">
             {status === "processing" ? (
-              <Loading/>
+              
+      <WorkflowProgress currentStep={step} />
+   
+              
             ) : (
               <div className="text-center space-y-6">
                 <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
@@ -327,14 +332,14 @@ export default function SearchResultsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-card/30 border border-border/50 rounded-lg p-4">
           <div>
             <h2 className="text-lg font-semibold text-foreground">Product Recommendations</h2>
-            <p className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-3 h-3" /> 
                <span>Ranked by AI score</span>
               </div>
                
               {selectedProductIds.size > 0 && ` • ${selectedProductIds.size} selected for AI chat`}
-            </p>
+            </div>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Showing {products.length} of {allRankedProducts.length} products</p>

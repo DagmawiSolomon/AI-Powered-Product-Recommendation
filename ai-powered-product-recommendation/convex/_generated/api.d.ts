@@ -19,13 +19,13 @@ import type * as products_actions from "../products/actions.js";
 import type * as products_mutations from "../products/mutations.js";
 import type * as products_productFields from "../products/productFields.js";
 import type * as products_query from "../products/query.js";
+import type * as products_workflow from "../products/workflow.js";
 import type * as rankings_helpers from "../rankings/helpers.js";
 import type * as rankings_mutations from "../rankings/mutations.js";
 import type * as search_history_action from "../search_history/action.js";
 import type * as search_history_helper from "../search_history/helper.js";
 import type * as search_history_mutations from "../search_history/mutations.js";
 import type * as search_history_query from "../search_history/query.js";
-import type * as search_history_searchHistoryFields from "../search_history/searchHistoryFields.js";
 import type * as services_embeddings from "../services/embeddings.js";
 import type * as services_llm_ranking from "../services/llm_ranking.js";
 import type * as services_reciprocal_ranking_fusion from "../services/reciprocal_ranking_fusion.js";
@@ -57,13 +57,13 @@ declare const fullApi: ApiFromModules<{
   "products/mutations": typeof products_mutations;
   "products/productFields": typeof products_productFields;
   "products/query": typeof products_query;
+  "products/workflow": typeof products_workflow;
   "rankings/helpers": typeof rankings_helpers;
   "rankings/mutations": typeof rankings_mutations;
   "search_history/action": typeof search_history_action;
   "search_history/helper": typeof search_history_helper;
   "search_history/mutations": typeof search_history_mutations;
   "search_history/query": typeof search_history_query;
-  "search_history/searchHistoryFields": typeof search_history_searchHistoryFields;
   "services/embeddings": typeof services_embeddings;
   "services/llm_ranking": typeof services_llm_ranking;
   "services/reciprocal_ranking_fusion": typeof services_reciprocal_ranking_fusion;
@@ -5431,6 +5431,200 @@ export declare const components: {
           next?: Array<string>;
           processed: number;
           state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }
+      >;
+    };
+  };
+  workflow: {
+    journal: {
+      load: FunctionReference<
+        "query",
+        "internal",
+        { workflowId: string },
+        {
+          journalEntries: Array<{
+            _creationTime: number;
+            _id: string;
+            step: {
+              args: any;
+              argsSize: number;
+              completedAt?: number;
+              functionType: "query" | "mutation" | "action";
+              handle: string;
+              inProgress: boolean;
+              name: string;
+              runResult?:
+                | { kind: "success"; returnValue: any }
+                | { error: string; kind: "failed" }
+                | { kind: "canceled" };
+              startedAt: number;
+              workId?: string;
+            };
+            stepNumber: number;
+            workflowId: string;
+          }>;
+          logLevel: "DEBUG" | "TRACE" | "INFO" | "REPORT" | "WARN" | "ERROR";
+          ok: boolean;
+          workflow: {
+            _creationTime: number;
+            _id: string;
+            args: any;
+            generationNumber: number;
+            logLevel?: any;
+            name?: string;
+            onComplete?: { context?: any; fnHandle: string };
+            runResult?:
+              | { kind: "success"; returnValue: any }
+              | { error: string; kind: "failed" }
+              | { kind: "canceled" };
+            startedAt?: any;
+            state?: any;
+            workflowHandle: string;
+          };
+        }
+      >;
+      startStep: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          generationNumber: number;
+          name: string;
+          retry?:
+            | boolean
+            | { base: number; initialBackoffMs: number; maxAttempts: number };
+          schedulerOptions?: { runAt?: number } | { runAfter?: number };
+          step: {
+            args: any;
+            argsSize: number;
+            completedAt?: number;
+            functionType: "query" | "mutation" | "action";
+            handle: string;
+            inProgress: boolean;
+            name: string;
+            runResult?:
+              | { kind: "success"; returnValue: any }
+              | { error: string; kind: "failed" }
+              | { kind: "canceled" };
+            startedAt: number;
+            workId?: string;
+          };
+          workflowId: string;
+          workpoolOptions?: {
+            defaultRetryBehavior?: {
+              base: number;
+              initialBackoffMs: number;
+              maxAttempts: number;
+            };
+            logLevel?: "DEBUG" | "TRACE" | "INFO" | "REPORT" | "WARN" | "ERROR";
+            maxParallelism?: number;
+            retryActionsByDefault?: boolean;
+          };
+        },
+        {
+          _creationTime: number;
+          _id: string;
+          step: {
+            args: any;
+            argsSize: number;
+            completedAt?: number;
+            functionType: "query" | "mutation" | "action";
+            handle: string;
+            inProgress: boolean;
+            name: string;
+            runResult?:
+              | { kind: "success"; returnValue: any }
+              | { error: string; kind: "failed" }
+              | { kind: "canceled" };
+            startedAt: number;
+            workId?: string;
+          };
+          stepNumber: number;
+          workflowId: string;
+        }
+      >;
+    };
+    workflow: {
+      cancel: FunctionReference<
+        "mutation",
+        "internal",
+        { workflowId: string },
+        null
+      >;
+      cleanup: FunctionReference<
+        "mutation",
+        "internal",
+        { workflowId: string },
+        boolean
+      >;
+      complete: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          generationNumber: number;
+          runResult:
+            | { kind: "success"; returnValue: any }
+            | { error: string; kind: "failed" }
+            | { kind: "canceled" };
+          workflowId: string;
+        },
+        null
+      >;
+      create: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          maxParallelism?: number;
+          onComplete?: { context?: any; fnHandle: string };
+          startAsync?: boolean;
+          workflowArgs: any;
+          workflowHandle: string;
+          workflowName: string;
+        },
+        string
+      >;
+      getStatus: FunctionReference<
+        "query",
+        "internal",
+        { workflowId: string },
+        {
+          inProgress: Array<{
+            _creationTime: number;
+            _id: string;
+            step: {
+              args: any;
+              argsSize: number;
+              completedAt?: number;
+              functionType: "query" | "mutation" | "action";
+              handle: string;
+              inProgress: boolean;
+              name: string;
+              runResult?:
+                | { kind: "success"; returnValue: any }
+                | { error: string; kind: "failed" }
+                | { kind: "canceled" };
+              startedAt: number;
+              workId?: string;
+            };
+            stepNumber: number;
+            workflowId: string;
+          }>;
+          logLevel: "DEBUG" | "TRACE" | "INFO" | "REPORT" | "WARN" | "ERROR";
+          workflow: {
+            _creationTime: number;
+            _id: string;
+            args: any;
+            generationNumber: number;
+            logLevel?: any;
+            name?: string;
+            onComplete?: { context?: any; fnHandle: string };
+            runResult?:
+              | { kind: "success"; returnValue: any }
+              | { error: string; kind: "failed" }
+              | { kind: "canceled" };
+            startedAt?: any;
+            state?: any;
+            workflowHandle: string;
+          };
         }
       >;
     };

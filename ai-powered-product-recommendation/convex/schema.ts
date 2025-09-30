@@ -1,5 +1,5 @@
 import { defineSchema, defineTable } from "convex/server";
-import { searchHistoryFields } from "./search_history/searchHistoryFields";
+import { searchHistoryFields } from "./search_history/schema";
 import { rankingsFields } from "./rankings/schema";
 import { ComparisonFields } from "./comparisons/schema";
 import { v } from "convex/values";

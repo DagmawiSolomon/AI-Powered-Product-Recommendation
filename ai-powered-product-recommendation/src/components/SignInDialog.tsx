@@ -66,7 +66,7 @@ export default function SignInDialog() {
             await signIn.social(
               {
                 provider: "github",
-                callbackURL: "/dashboard",
+                callbackURL: "/",
               },
               {
                 onRequest: (ctx) => {

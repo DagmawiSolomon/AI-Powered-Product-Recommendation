@@ -9,6 +9,8 @@ import { SearchHistorySidebar } from "@/components/SearchHistorySidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { SidebarToggle } from "@/components/SideBarToggle"
 import { Authenticated } from "convex/react"
+import Link from "next/link"
+
 
 export default function Home() {
   const [showTooltip, setShowTooltip] = useState(false)
@@ -65,26 +67,20 @@ export default function Home() {
 
         <section className="px-6 py-16">
           <div className="max-w-4xl mx-auto text-center">
-            <p className="text-muted-foreground mb-12 text-sm uppercase tracking-wider">Powered By Industry Leaders</p>
-            <div className="flex flex-wrap justify-center items-center gap-16 opacity-70">
-              <div className="flex items-center space-x-3">
-                <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-                <span className="font-semibold text-lg">Convex</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
-                <span className="font-semibold text-lg">BetterAuth</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-                <span className="font-semibold text-lg">OpenAI</span>
-              </div>
+            <p className="text-muted-foreground mb-12 text-sm uppercase tracking-wider">Powered By the Modern Stack</p>
+            <div className="flex  justify-center items-center gap-16 opacity-70">
+              <Link href="https://convex.dev" target="_blank" className="flex items-center space-x-3 text-white">
+                 <img src="brands/logo-white.svg" className="w-[200px] hidden dark:block"/>
+                 <img src="brands/logo-black.svg" className="w-[200px] block dark:hidden"/>
+              </Link>
+              <Link href="https://www.better-auth.com" target="_blank" className="flex items-center space-x-3">
+                  <img src="brands/better-auth-logo-wordmark-light.svg" className="w-[200px] hidden dark:block"/>
+                 <img src="brands/better-auth-logo-wordmark-dark.svg" className="w-[200px] block dark:hidden"/>
+              </Link>
+              <Link href="https://resend.com" target="_blank" className="flex items-center space-x-3">
+                  <img src="brands/resend-wordmark-white.svg" className="w-[200px] hidden dark:block"/>
+                 <img src="brands/resend-wordmark-black.svg" className="w-[200px] block dark:hidden"/>
+              </Link>
             </div>
           </div>
         </section>

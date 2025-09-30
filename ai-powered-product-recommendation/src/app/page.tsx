@@ -10,6 +10,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { SidebarToggle } from "@/components/SideBarToggle"
 import { Authenticated } from "convex/react"
 import Link from "next/link"
+import Image from "next/image"
 
 
 export default function Home() {
@@ -70,16 +71,16 @@ export default function Home() {
             <p className="text-muted-foreground mb-12 text-sm uppercase tracking-wider">Powered By the Modern Stack</p>
             <div className="flex  justify-center items-center gap-16 opacity-70">
               <Link href="https://convex.dev" target="_blank" className="flex items-center space-x-3 text-white">
-                 <img src="brands/logo-white.svg" className="w-[200px] hidden dark:block"/>
-                 <img src="brands/logo-black.svg" className="w-[200px] block dark:hidden"/>
+                 <Image src="brands/logo-white.svg" alt="convex logo white" width={200} height={200} className="hidden dark:block"/>
+                 <Image src="brands/logo-black.svg" alt="convex logo black" width={200} height={200} className="w-[200px] block dark:hidden"/>
               </Link>
               <Link href="https://www.better-auth.com" target="_blank" className="flex items-center space-x-3">
-                  <img src="brands/better-auth-logo-wordmark-light.svg" className="w-[200px] hidden dark:block"/>
-                 <img src="brands/better-auth-logo-wordmark-dark.svg" className="w-[200px] block dark:hidden"/>
+                  <Image src="brands/better-auth-logo-wordmark-light.svg" alt="better auth logo white" width={200} height={200} className="w-[200px] hidden dark:block"/>
+                 <Image src="brands/better-auth-logo-wordmark-dark.svg" alt="better auth logo dark" width={200} height={200} className="w-[200px] block dark:hidden"/>
               </Link>
               <Link href="https://resend.com" target="_blank" className="flex items-center space-x-3">
-                  <img src="brands/resend-wordmark-white.svg" className="w-[200px] hidden dark:block"/>
-                 <img src="brands/resend-wordmark-black.svg" className="w-[200px] block dark:hidden"/>
+                  <Image src="brands/resend-wordmark-white.svg" alt="resend logo white"width={200} height={200}  className="w-[200px] hidden dark:block"/>
+                 <Image src="brands/resend-wordmark-black.svg" alt="resend logo black" width={200} height={200} className="w-[200px] block dark:hidden"/>
               </Link>
             </div>
           </div>

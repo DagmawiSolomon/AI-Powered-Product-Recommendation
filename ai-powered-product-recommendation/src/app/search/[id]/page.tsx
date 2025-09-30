@@ -167,10 +167,7 @@ export default function SearchResultsPage() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="max-w-md w-full px-4">
             {status === "processing" ? (
-              
-      <WorkflowProgress currentStep={step} />
-   
-              
+                step ? (<WorkflowProgress currentStep={step} />) : (<Loading />)   
             ) : (
               <div className="text-center space-y-6">
                 <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">

@@ -161,3 +161,11 @@ export const getSearchHistory = query({
   }
 });
 
+export const getSearchHistoryStep = query({
+  args: { id: v.string() },
+  handler: async (ctx, args) => {
+    const history_id = args.id as Id<"search_history">
+    const doc = await ctx.db.get(history_id);
+    return doc?.step;
+  }
+})

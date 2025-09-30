@@ -4,7 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Sparkles } from "lucide-react"
+import { Loader2, Sparkles } from "lucide-react"
 
 import { useMutation } from "convex/react"
 import { useAction } from "convex/react"
@@ -27,6 +27,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
   const router = useRouter()
   const [showDialog, setShowDialog] = useState(false)
   const { isAuthenticated } = useConvexAuth()
+  const [isLoading, setIsLoading] = useState(false)
 
 
 
@@ -45,7 +46,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-
+    setIsLoading(true)
     if (isAuthenticated) {
       const id  = await createSearchHistory({
         prompt: prompt,
@@ -56,10 +57,15 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
       })
       startSearchWorkflow({ searchId: id })
       router.push(`/search/${id}`)
+      if(id){setIsLoading(false)}
+
      
     } else {
       setShowDialog(true)
+      setIsLoading(false)
+
     }
+
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -87,6 +93,7 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
             onKeyDown={handleKeyDown}
             placeholder={placeholder || "Describe the product you're looking for..."}
             rows={3}
+            disabled={isLoading}
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-base resize-none leading-relaxed"
           />
 
@@ -95,14 +102,18 @@ export function SearchInput({ placeholder = "", onSubmit, className = "" }: Sear
               <kbd className="p-1.5 bg-muted text-sm rounded-sm">Enter ⏎</kbd>
               <span>to search</span>
             </div>
+        
             <Button
               type="submit"
               variant={"outline"}
               size={"lg"}
               disabled={!prompt.trim()}
-              className="disabled:opacity-50 disabled:cursor-not-allowed p-6 rounded-full w-fit overflow-hidden"
-            >
-              <Sparkles />
+              className="disabled:opacity-50 disabled:cursor-not-allowed p-6 rounded-full w-fit overflow-hidden">
+                {isLoading ? (
+    <Loader2 className="animate-spin" />
+  ) : (
+    <Sparkles />
+  )}
             </Button>
           </div>
         </div>

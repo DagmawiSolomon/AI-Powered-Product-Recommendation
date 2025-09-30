@@ -21,10 +21,11 @@ const steps: { key: StepKey; label: string }[] = [
 
 export interface WorkflowProgressProps {
   currentStep?: StepKey | null
-  processingDuration?: number // Time to show processing phase (default: 2000ms)
+  doneDelay?: number // Time to show done state before transitioning to next step (default: 800ms)
 }
 
-export function WorkflowProgress({ currentStep, processingDuration = 2000 }: WorkflowProgressProps) {
+export function WorkflowProgress({ currentStep, doneDelay = 800 }: WorkflowProgressProps) {
+  const [displayStep, setDisplayStep] = useState<StepKey | null>(currentStep ?? null)
   const [phase, setPhase] = useState<"processing" | "done">("processing")
   const prevStepRef = useRef<StepKey | null | undefined>(currentStep)
 
@@ -33,48 +34,43 @@ export function WorkflowProgress({ currentStep, processingDuration = 2000 }: Wor
       return
     }
 
-    // When step changes, reset to processing phase
-    // This works perfectly with Convex's reactive queries - when the query updates,
-    // this effect will trigger and smoothly transition to the new step
-    if (prevStepRef.current !== currentStep) {
-      prevStepRef.current = currentStep
+    // This ensures the component stays in processing state until Convex updates the step
+    if (prevStepRef.current && prevStepRef.current !== currentStep) {
+      // Step changed! Show the previous step as done first
+      setPhase("done")
+
+      // After showing done state, transition to new step
+      const transitionTimeout = setTimeout(() => {
+        setDisplayStep(currentStep)
+        setPhase("processing")
+        prevStepRef.current = currentStep
+      }, doneDelay)
+
+      return () => clearTimeout(transitionTimeout)
+    } else if (!prevStepRef.current) {
+      // Initial mount
+      setDisplayStep(currentStep)
       setPhase("processing")
-
-      const doneTimeout = setTimeout(() => {
-        setPhase("done")
-      }, processingDuration)
-
-      return () => clearTimeout(doneTimeout)
+      prevStepRef.current = currentStep
     }
-  }, [currentStep, processingDuration])
+  }, [currentStep, doneDelay])
 
-  if (!currentStep) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center gap-3 p-6 bg-card rounded-xl shadow-lg border"
-        >
-          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-          <span className="text-lg font-semibold text-muted-foreground">Loading...</span>
-        </motion.div>
-      </div>
-    )
+  if (!currentStep || !displayStep) {
+    return null
   }
 
-  const stepToShow = steps.find((s) => s.key === currentStep) ?? steps[0]
+  const stepToShow = steps.find((s) => s.key === displayStep) ?? steps[0]
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center bg-transparent">
       <AnimatePresence mode="wait">
         <motion.div
-          key={stepToShow.key}
+          key={displayStep}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.4 }}
-          className="flex items-center gap-3 p-6 bg-card rounded-xl shadow-lg border"
+          className="flex items-center gap-3 p-6 bg-card rounded-xl shadow-lg"
         >
           <AnimatePresence mode="wait">
             {phase === "processing" ? (

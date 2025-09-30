@@ -78,10 +78,6 @@ export default function Home() {
                   <Image src="brands/better-auth-logo-wordmark-light.svg" alt="better auth logo white" width={200} height={200} className="w-[200px] hidden dark:block"/>
                  <Image src="brands/better-auth-logo-wordmark-dark.svg" alt="better auth logo dark" width={200} height={200} className="w-[200px] block dark:hidden"/>
               </Link>
-              <Link href="https://resend.com" target="_blank" className="flex items-center space-x-3">
-                  <Image src="brands/resend-wordmark-white.svg" alt="resend logo white"width={200} height={200}  className="w-[200px] hidden dark:block"/>
-                 <Image src="brands/resend-wordmark-black.svg" alt="resend logo black" width={200} height={200} className="w-[200px] block dark:hidden"/>
-              </Link>
             </div>
           </div>
         </section>

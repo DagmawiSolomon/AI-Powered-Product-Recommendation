@@ -302,31 +302,36 @@ export default function SearchResultsPage() {
                   Clear Selection ({selectedProductIds.size})
                 </Button>
               )}
-              <Button variant="outline" size="sm">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
+              
             </div>
           </div>
         </div>
       </div>
 
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {pageData?.comparison && (
+        {(pageData?.comparison && products.length > 0) && (
           <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-xl p-6">
             <div className="flex items-start space-x-4">
               <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-5 h-5 text-primary" />
               </div>
-              <div className="space-y-2 flex-1">
-                <h3 className="font-semibold text-foreground">AI Product Comparison</h3>
-                <ExpandableText text={pageData.comparison.text} maxLength={1000} className="text-muted-foreground" />
-              </div>
+           
+            <div className="space-y-2 flex-1">
+              <h3 className="font-semibold text-foreground">AI Product Comparison</h3>
+              <ExpandableText 
+                text={pageData.comparison.text} 
+                maxLength={1000} 
+                className="text-muted-foreground" 
+              />
+            </div>
+
+              
             </div>
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-card/30 border border-border/50 rounded-lg p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-card/30  rounded-lg p-4">
           <div>
             <h2 className="text-lg font-semibold text-foreground">Product Recommendations</h2>
             <div className="text-sm text-muted-foreground">
@@ -335,7 +340,7 @@ export default function SearchResultsPage() {
                <span>Ranked by AI score</span>
               </div>
                
-              {selectedProductIds.size > 0 && ` • ${selectedProductIds.size} selected for AI chat`}
+             
             </div>
           </div>
           <div>
@@ -398,15 +403,12 @@ export default function SearchResultsPage() {
                 <div className="p-6 space-y-4 flex-1 flex flex-col">
                   <div className="space-y-3 flex-1">
                     <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-semibold text-foreground text-lg leading-tight flex-1">{product.name}</h3>
+                    <ExpandableText text={product.name} maxLength={100} className="font-sans font-semibold text-foreground text-md leading-tight flex-1" />
+                      
                       <span className="text-xl font-bold text-primary flex-shrink-0">${product.price}</span>
                     </div>
 
-                    <ExpandableText
-                      text={product.description}
-                      maxLength={100}
-                      className="text-muted-foreground text-sm"
-                    />
+                  
                   </div>
 
                   <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
@@ -420,7 +422,7 @@ export default function SearchResultsPage() {
                   </div>
 
                   <div className="flex justify-end pt-2 border-t border-border/50 mt-auto">
-                    <Button size="sm" className="text-xs px-6" asChild>
+                    <Button variant="outline" size="sm" className="text-sm p-6" asChild>
                       <a href={product.url} target="_blank" rel="noopener noreferrer">
                         View Product
                       </a>

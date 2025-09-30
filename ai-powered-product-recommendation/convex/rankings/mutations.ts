@@ -1,4 +1,4 @@
-import { mutation } from "../_generated/server";
+import { internalMutation, mutation } from "../_generated/server";
 import { rankingsFields } from "./schema";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
@@ -9,7 +9,7 @@ export type aiSelections = {
     reasoning: string,
 }[]
 
-export const createRankings = mutation({
+export const createRankings = internalMutation({
   args: { rankings: v.array(v.object(rankingsFields)) },
   handler: async (ctx, args) => {
      const aiSelections: aiSelections = [];

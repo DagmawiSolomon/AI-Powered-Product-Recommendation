@@ -1,5 +1,5 @@
-import { mutation } from "../_generated/server";
-import { searchHistoryFields } from "./searchHistoryFields";
+import { internalMutation, mutation } from "../_generated/server";
+import { searchHistoryFields } from "./schema";
 import { authComponent } from "../auth";
 import { api } from "../_generated/api";
 import { internal } from "../_generated/api";
@@ -35,7 +35,7 @@ export const createSearchHistory = mutation({
     },
 });
 
-export const UpdateSearchHistory = mutation({
+export const UpdateSearchHistory = internalMutation({
   args: {id: v.id("search_history"), status: v.union(
     v.literal("pending"),
     v.literal("processing"),
@@ -53,3 +53,19 @@ export const UpdateSearchHistory = mutation({
     }
   
 })
+
+export const UpdateSearchHistoryWorkflowStep = internalMutation({
+  args: {
+    id: v.id("search_history"),
+    step: v.union(
+      v.literal("understanding_search"),
+      v.literal("finding_products"),
+      v.literal("sorting_options"),
+      v.literal("choosing_fit"),
+      v.literal("preparing_results")
+    ),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { step: args.step });
+  },
+});

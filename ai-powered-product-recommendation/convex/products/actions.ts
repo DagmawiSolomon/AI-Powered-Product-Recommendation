@@ -194,7 +194,7 @@ export const HybridSearchWorkFlow = internalAction({
       result: JSON.stringify(final_result),
       error_message: ""
     });
-    // update search_history status and save in the database
+    
     
   
     return final_result

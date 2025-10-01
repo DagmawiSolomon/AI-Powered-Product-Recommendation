@@ -63,6 +63,7 @@ const instruction_prompt = `You are an AI comparison engine. Your task is to cre
 3. Be **concise, clear, and focused on how well each product fits the user's prompt**.  
 4. Only use **provided metadata** (name, description, tags, price) and existing reasoning. Do not hallucinate or invent new attributes.  
 5. Output **must be valid JSON**, with only the "comparison" field. No extra text.
+6. If the search doesn't match any of the products passed clearly say "No product found that matches ur search" don't return unnessary explations
 
 
 ### Additional Notes:

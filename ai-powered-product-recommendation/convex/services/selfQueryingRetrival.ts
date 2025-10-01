@@ -8,8 +8,8 @@ const instructionPrompt = `You are a data engineer and AI search parser.
 Task:
 
 Given a natural language user query, output a JSON object containing:
-semantic_query – a text string suitable for embedding-based semantic search.
-keyword_query – a string containing keywords for exact match or traditional search.
+semantic_query – a text string suitable for embedding-based semantic search Expand vague or intent-based queries into detailed requirements (e.g. "laptop for computer science students" → "laptop with 16GB RAM, long battery life, good CPU, lightweight").
+keyword_query – a string containing keywords for exact match or traditional search, also expanded with key requirements. 
 filters – an array of structured filter objects. Only include filters for the fields: price.
 Product Table Schema (Allowed Fields)
 FieldType_idIdtitlestringdescriptionstringcategorystringbrandstringcolorstringpricenumbertagsstring[]image_urlstringembeddingnumber[]product_urlstring

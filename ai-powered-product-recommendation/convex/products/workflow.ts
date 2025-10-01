@@ -137,7 +137,7 @@ export const HybridSearchWorkflow = workflow.define({
       internal.products.actions.llmRankingAction,
       {
         query: args.user_query,
-        results: products.slice(0, 15).map((p) => ({
+        results: products.map((p) => ({
           _id: p._id,
           name: p.name,
           description: p.description,

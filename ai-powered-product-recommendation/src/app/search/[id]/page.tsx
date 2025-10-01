@@ -302,7 +302,7 @@ export default function SearchResultsPage() {
                   Clear Selection ({selectedProductIds.size})
                 </Button>
               )}
-              
+p              
             </div>
           </div>
         </div>
@@ -310,7 +310,7 @@ export default function SearchResultsPage() {
 
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {(pageData?.comparison && products.length > 0) && (
+        {(pageData?.comparison) && (
           <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-xl p-6">
             <div className="flex items-start space-x-4">
               <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -319,6 +319,7 @@ export default function SearchResultsPage() {
            
             <div className="space-y-2 flex-1">
               <h3 className="font-semibold text-foreground">AI Product Comparison</h3>
+              
               <ExpandableText 
                 text={pageData.comparison.text} 
                 maxLength={1000} 
@@ -386,17 +387,7 @@ export default function SearchResultsPage() {
                     alt={product.name}
                     className="w-full h-56 object-cover"
                   />
-                  {product.aiRank !== 1 && (
-                    <div
-                      className="absolute top-3 right-3 bg-chart-2 text-white text-xs px-2 py-1 rounded-full"
-                    >
-                      <div className="flex items-center justify-center gap-1">
-                        <Medal className="w-3 h-3" />
-                      <span>{product.aiRank}</span>
-                      </div>
-                      
-                    </div>
-                  )}
+                  
 
                 </div>
 

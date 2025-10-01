@@ -50,10 +50,10 @@ export default function Home() {
             </div>
             <div className="pb-3">
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-balance leading-tight">
-                Find the Right Product, <span className="text-muted-foreground">Together.</span>
+                Find the Right Product, <span className="text-muted-foreground">Stress Free.</span>
               </h1>
               <p className="text-lg font-medium md:text-2xl text-muted-foreground max-w-2xl mx-auto text-balance">
-                AI-powered search with real community insights to help you discover products that actually matter.
+               Saving you time and stress in your search for the right product.
               </p>
             </div>
 
@@ -68,7 +68,7 @@ export default function Home() {
 
         <section className="px-6 py-16">
           <div className="max-w-4xl mx-auto text-center">
-            <p className="text-muted-foreground mb-12 text-sm uppercase tracking-wider">Powered By the Modern Stack</p>
+            <p className="text-muted-foreground mb-12 text-sm uppercase tracking-wider">Powered By</p>
             <div className="flex  justify-center items-center gap-16 opacity-70">
               <Link href="https://convex.dev" target="_blank" className="flex items-center space-x-3 text-white">
                  <Image src="brands/logo-white.svg" alt="convex logo white" width={200} height={200} className="hidden dark:block"/>

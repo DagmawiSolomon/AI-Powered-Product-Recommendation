@@ -48,7 +48,7 @@ export const generateComparison = internalAction({
     });
 
     const existingComparison = await ctx.runQuery(
-      internal.comparisons.query.getBySearchId, // You may need to implement this query
+      internal.comparisons.query.getBySearchId,
       { searchId: args.search_id as Id<"search_history"> }
     );
     if(!existingComparison){

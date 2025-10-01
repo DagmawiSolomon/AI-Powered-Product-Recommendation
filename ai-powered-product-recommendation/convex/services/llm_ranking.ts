@@ -97,7 +97,7 @@ You are an AI ranking engine. Your task is to **rerank a list of product candida
    - Keep it as brief as possible without losing value.
    - Example good: "Strong CPU and 16GB RAM, but limited SSD and no dedicated GPU."
    - Example bad: "I have a decent AMD Ryzen 7 5700U processor and 16GB RAM, but my 512GB SSD and lack of a dedicated GPU are less optimal..."
-
+7. If the a product has nothing to do with the user query return 0 for the rank field
 ### Additional Notes:
 - **Only** output JSON — no extra explanations or text.
 - The "reason" field must be concise and tied to metadata.

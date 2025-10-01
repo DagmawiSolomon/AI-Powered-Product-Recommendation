@@ -47,6 +47,16 @@ export const getPrompt = internalQuery({
   },
 })
 
+export const getProduct = internalQuery({
+  args: {
+    id: v.id("products"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
+  },
+});
+
+
 export const getPageData = query({
   args: { id: v.string() },
   handler: async (ctx, args) => {
@@ -58,33 +68,24 @@ export const getPageData = query({
       .withIndex("by_searchId", (q) => q.eq("searchId", args.id as Id<"search_history">))
       .collect();
 
-    // 2. Get all unique productIds from the rankings
-    const productIds = Array.from(
-      new Set(
-        rankings
-          .filter(r => (r.hybridScore ?? 0) > 0.03) 
-          .map(r => r.productId)
-      )
-);
-
-
-    // 3. Fetch all products by their IDs
-    const products = await Promise.all(
-      productIds.map((productId) => ctx.db.get(productId))
-    ) ?? [];
-
-
     // 4. Get the comparison associated with the search_history
     const comparison = await ctx.db
       .query("comparisons")
       .withIndex("by_searchId", (q) => q.eq("searchId", args.id as Id<"search_history">))
       .unique();
 
+    
+    const comparisonProducts = await Promise.all(
+  (comparison?.productIds ?? []).map((productId) => ctx.db.get(productId))
+);
+    
+
+
     // 5. Return everything formatted for easy parsing
     return {
       prompt,
       rankings,
-      products,
+      comparisonProducts,
       comparison,
     };
   },

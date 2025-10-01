@@ -76,21 +76,24 @@ export default function SearchResultsPage() {
 
   useEffect(() => {
     if (pageData && status === "done") {
-   const rankedProducts: ProductWithRanking[] = pageData.products
-  .map((product): ProductWithRanking => {
-    if (!product) return null as any; // skip null products
-
-    // Find a ranking for this product if it exists
+   const rankedProducts: ProductWithRanking[] = pageData.comparisonProducts
+  .map((product): any => {
+    if (!product) return null as any; 
     const ranking = pageData.rankings.find(r => r.productId === product._id);
+    console.log(product.name)
+    console.log(ranking?.aiRank)
+    console.log(ranking?.reason)
+   const transformedProduct = {
+  ...product,
+  aiRank: ranking?.aiRank || 0,
+  hybridScore: ranking?.hybridScore || 0,
+  reason: ranking?.reason || "No ranking available",
+};
 
-    return {
-      ...product,
-      aiRank: ranking?.aiRank || 0, // 0 means unranked
-      hybridScore: ranking?.hybridScore || 0,
-      reason: ranking?.reason || "No ranking available",
-    };
+// Return only if aiRank > 0
+return transformedProduct.aiRank > 0 ? transformedProduct : null;
   })
-  .filter(Boolean) as ProductWithRanking[];
+  .filter(Boolean) as any[];
       const sortedProducts = rankedProducts.sort((a, b) => a.aiRank - b.aiRank)
 
       setAllRankedProducts(sortedProducts)
@@ -299,8 +302,7 @@ export default function SearchResultsPage() {
                   <X className="w-4 h-4 mr-2" />
                   Clear Selection ({selectedProductIds.size})
                 </Button>
-              )}
-p              
+              )}          
             </div>
           </div>
         </div>
@@ -371,11 +373,27 @@ p
                 </div>
 
                 {product.aiRank === 1 && (
-                  <div className="absolute top-3 right-3 bg-gradient-to-l from-primary to-accent-foreground text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1 z-10 shadow-lg">
+                  <div className="absolute top-3 right-3 bg-amber-600 to-accent-foreground text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1 z-10 shadow-lg">
                     <Trophy className="w-3 h-3" />
                     <span className="font-medium">1</span>
                   </div>
                 )}
+
+              {product.aiRank !== 1 && (
+                <div
+                  className={`absolute top-3 right-3 text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1 z-10 shadow-lg ${
+                    product.aiRank === 2
+                      ? "bg-gray-400"   // Silver for rank 2
+                      : product.aiRank === 3
+                      ? "bg-amber-700"   // Bronze for rank 3
+                      : "bg-primary"      // Default color for others
+                  }`}
+                >
+                  <Medal className="w-3 h-3" />
+                  <span className="font-medium">{product.aiRank}</span>
+                </div>
+              )}
+
 
 
 

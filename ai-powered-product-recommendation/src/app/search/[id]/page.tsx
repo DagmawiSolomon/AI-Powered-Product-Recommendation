@@ -76,23 +76,21 @@ export default function SearchResultsPage() {
 
   useEffect(() => {
     if (pageData && status === "done") {
-      const rankedProducts: ProductWithRanking[] = pageData.rankings
-        .map((ranking) => {
-          if (!pageData) return
-          const product = pageData.products.find(
-            (p): p is NonNullable<typeof p> => p !== null && p._id === ranking.productId,
-          )
-          if (!product) return null
+   const rankedProducts: ProductWithRanking[] = pageData.products
+  .map((product): ProductWithRanking => {
+    if (!product) return null as any; // skip null products
 
-          return {
-            ...product,
-            aiRank: ranking.aiRank,
-            hybridScore: ranking.hybridScore,
-            reason: ranking.reason,
-          }
-        })
-        .filter(Boolean) as ProductWithRanking[]
+    // Find a ranking for this product if it exists
+    const ranking = pageData.rankings.find(r => r.productId === product._id);
 
+    return {
+      ...product,
+      aiRank: ranking?.aiRank || 0, // 0 means unranked
+      hybridScore: ranking?.hybridScore || 0,
+      reason: ranking?.reason || "No ranking available",
+    };
+  })
+  .filter(Boolean) as ProductWithRanking[];
       const sortedProducts = rankedProducts.sort((a, b) => a.aiRank - b.aiRank)
 
       setAllRankedProducts(sortedProducts)

@@ -8,6 +8,7 @@ export type Product_Metadata = {
   _id: Id<"products">;  
   name: string;
   description: string;
+  price: number
   category: string;
   tags: string[];
 };
@@ -82,8 +83,8 @@ You are an AI ranking engine. Your task is to **rerank a list of product candida
 
 ### Rules / Safety Measures:
 1. **Do not hallucinate** product attributes; only use provided metadata.
-2. **Enforce numeric/categorical constraints**:
-   - Price, brand, and color must respect query requirements.
+2. **Enforce numeric constraints**:
+   - Price must respect query requirements.
 3. **Handle missing data safely**:
    - Assign a low score (≤0.3) and note "insufficient data" in reason if key fields are missing.
 4. **Score uniqueness**:

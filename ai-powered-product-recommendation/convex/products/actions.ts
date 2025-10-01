@@ -118,6 +118,7 @@ export const llmRankingAction = internalAction({
         description: v.string(),
         category: v.string(),
         tags: v.array(v.string()),
+        price: v.number(),
       })
     ),
   },
@@ -162,6 +163,7 @@ export const HybridSearchWorkFlow = internalAction({
         name: p.name,
         description: p.description,
         category: p.category,
+        price: p.price,
         tags: p.tags
       }))
     })
